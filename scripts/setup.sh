@@ -2,8 +2,8 @@
 
 for plug in hardware-observe home login-session-observe login-session-control \
             mount-observe network-control network-observe system-observe \
-            shutdown shell-config-files; do
-    snap connect "confined-desktop:$plug"
+            shutdown shell-config-files snapd-control; do
+    snap connect "ubuntu-desktop-session:$plug"
 done
 
-cp /snap/confined-desktop/current/confined-desktop.desktop /usr/share/wayland-sessions/
+cp /snap/ubuntu-desktop-session/current/ubuntu-desktop-session.desktop /usr/share/wayland-sessions/
