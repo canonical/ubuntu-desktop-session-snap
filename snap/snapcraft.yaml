@@ -66,6 +66,8 @@ apps:
         - dbus-freedesktop-impl-portal-gtk
 
 plugs:
+  audio-playback: null
+  audio-record: null
   desktop-launch: null
   hardware-observe: null
   home: null
