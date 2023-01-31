@@ -27,6 +27,7 @@ apps:
       - wayland
       - x11
     plugs:
+      - alsa
       - audio-playback
       - audio-record
 
@@ -63,6 +64,7 @@ apps:
         - dbus-freedesktop-impl-portal-gtk
 
 plugs:
+  alsa: null
   audio-playback: null
   audio-record: null
   desktop-launch: null
