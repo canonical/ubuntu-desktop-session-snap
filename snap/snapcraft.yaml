@@ -26,6 +26,10 @@ apps:
     slots:
       - wayland
       - x11
+    plugs:
+      - time-control
+      - timeserver-control
+      - timezone-control
 
   gnome-terminal-server:
     command: run.sh /usr/libexec/gnome-terminal-server
