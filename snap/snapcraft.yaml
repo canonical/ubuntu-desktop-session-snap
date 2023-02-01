@@ -26,6 +26,8 @@ apps:
     slots:
       - wayland
       - x11
+    plugs:
+      - account-control
 
   gnome-terminal-server:
     command: run.sh /usr/libexec/gnome-terminal-server
