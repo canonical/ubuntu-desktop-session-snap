@@ -27,6 +27,7 @@ apps:
       - wayland
       - x11
     plugs:
+      - account-control
       - time-control
       - timeserver-control
       - timezone-control
