@@ -30,6 +30,10 @@ apps:
       - alsa
       - audio-playback
       - audio-record
+      - account-control
+      - time-control
+      - timeserver-control
+      - timezone-control
 
   gnome-terminal-server:
     command: run.sh /usr/libexec/gnome-terminal-server
