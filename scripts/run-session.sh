@@ -9,7 +9,4 @@ mkdir -p --mode=700 $XDG_RUNTIME_DIR
 
 export GNOME_SHELL_SESSION_MODE=ubuntu
 export PULSE_SERVER=unix:/run/user/`id -u`/pulse/native
-/usr/bin/pipewire &
-/usr/bin/wireplumber &
-/usr/bin/pipewire-pulse &
 exec /usr/bin/gnome-session --builtin --session=ubuntu
