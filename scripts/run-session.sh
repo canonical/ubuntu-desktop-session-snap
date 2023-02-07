@@ -8,4 +8,4 @@ chmod 01777 /tmp/.X11-unix /tmp/.ICE-unix
 mkdir -p --mode=700 $XDG_RUNTIME_DIR
 
 export GNOME_SHELL_SESSION_MODE=ubuntu
-exec /usr/bin/gnome-session --session=ubuntu
+exec /usr/bin/gnome-session --builtin --session=ubuntu
