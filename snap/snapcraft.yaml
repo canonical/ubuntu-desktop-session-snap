@@ -79,6 +79,7 @@ plugs:
   network-observe: null
   network-manager: null
   opengl: null
+  pipewire-server: null
   polkit-agent: null
   process-control: null
   shutdown: null
