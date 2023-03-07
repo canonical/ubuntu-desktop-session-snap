@@ -66,6 +66,8 @@ apps:
         - dbus-freedesktop-impl-portal-gtk
 
 plugs:
+  audio-playback: null
+  audio-record: null
   desktop-launch: null
   hardware-observe: null
   home: null
@@ -77,6 +79,7 @@ plugs:
   network-observe: null
   network-manager: null
   opengl: null
+  pipewire-server: null
   polkit-agent: null
   process-control: null
   shutdown: null
