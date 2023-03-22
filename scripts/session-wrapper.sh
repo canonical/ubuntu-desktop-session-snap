@@ -3,6 +3,11 @@
 # This script runs outside of snap confinement as a wrapper around the
 # confined desktop session.
 
+systemctl --user enable pipewire.socket
+systemctl --user enable pipewire-pulse.socket
+systemctl --user start pipewire.socket
+systemctl --user start pipewire-pulse.socket
+
 # Set up PATH and XDG_DATA_DIRS to allow calling snaps
 if [ -f /snap/snapd/current/etc/profile.d/apps-bin-path.sh ]; then
     source /snap/snapd/current/etc/profile.d/apps-bin-path.sh

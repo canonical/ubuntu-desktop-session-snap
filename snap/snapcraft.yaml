@@ -29,6 +29,7 @@ apps:
       - x11
     plugs:
       - account-control
+      - alsa
       - time-control
       - timeserver-control
       - timezone-control
@@ -79,7 +80,6 @@ plugs:
   network-observe: null
   network-manager: null
   opengl: null
-  pipewire-server: null
   polkit-agent: null
   process-control: null
   shutdown: null
