@@ -15,6 +15,7 @@ fi
 
 export XDG_CURRENT_DESKTOP=ubuntu:GNOME
 export GSETTINGS_BACKEND=keyfile
+export PULSE_SERVER=unix:/run/user/`id -u`/pulse/native
 
 dbus-update-activation-environment --systemd --all
 
