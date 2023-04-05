@@ -10,7 +10,6 @@ fi
 
 export XDG_CURRENT_DESKTOP=ubuntu:GNOME
 export GSETTINGS_BACKEND=keyfile
-export SPA_PLUGIN_DIR=/usr/lib/x86_64-linux-gnu/spa-0.2
 
 dbus-update-activation-environment --systemd --all
 
