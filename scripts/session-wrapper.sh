@@ -10,9 +10,6 @@ fi
 
 export XDG_CURRENT_DESKTOP=ubuntu:GNOME
 export GSETTINGS_BACKEND=keyfile
-export PULSE_SERVER=unix:/run/user/`id -u`/snap.ubuntu-desktop-session/pulse/native
-export PULSE_RUNTIME_DIR=/run/user/`id -u`/snap.ubuntu-desktop-session
-export PIPEWIRE_RUNTIME_DIR=/run/user/`id -u`/snap.ubuntu-desktop-session
 export SPA_PLUGIN_DIR=/usr/lib/x86_64-linux-gnu/spa-0.2
 
 dbus-update-activation-environment --systemd --all
@@ -54,13 +51,14 @@ link_wayland_socket &
 # Wait in background to link Pulseaudio socket to location where other
 # snaps will look for it.
 function link_pulse_socket() {
-    private_socket=/run/user/$(id -u)/snap.ubuntu-desktop-session/pulse/native
-    public_socket=/run/user/$(id -u)/pulse/native
-    mkdir -p /run/user/$(id -u)/pulse/
+    private_socket=/run/user/$(id -u)/snap.ubuntu-desktop-session/pulse
+    public_socket=/run/user/$(id -u)/pulse
+    mkdir -p $public_socket
     while :; do
         sleep 1s
-        if [ -S "$private_socket" ]; then
-            ln -f "$private_socket" "$public_socket"
+        if [ -S "${private_socket}/native" ]; then
+            ln -f "${private_socket}/native" "${public_socket}/native"
+            ln -f "${private_socket}/pid" "${public_socket}/pid"
             return
         fi
     done
