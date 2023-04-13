@@ -55,7 +55,6 @@ apps:
     passthrough:
       daemon-scope: user
     plugs:
-      - snapd-control
       - alsa
 
   wireplumber:
