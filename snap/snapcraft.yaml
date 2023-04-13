@@ -55,7 +55,6 @@ apps:
     passthrough:
       daemon-scope: user
     plugs:
-      - snapd-control
       - alsa
 
   wireplumber:
@@ -101,8 +100,6 @@ apps:
         - dbus-freedesktop-impl-portal-gtk
 
 plugs:
-  audio-playback: null
-  audio-record: null
   desktop-launch: null
   hardware-observe: null
   home: null
@@ -132,7 +129,10 @@ plugs:
   upower-observe: null
 
 slots:
-  desktop:
+  audio-playback: null
+  audio-record: null
+  pulseaudio: null
+  desktop: null
   dbus-canonical-unity:
     interface: dbus
     bus: session
