@@ -64,4 +64,20 @@ function link_pulse_socket() {
 }
 link_pulse_socket &
 
+# Wait in background to link Pipewire socket to location where other
+# snaps will look for it.
+function link_pipewire_socket() {
+    private_socket=/run/user/$(id -u)/snap.ubuntu-desktop-session/pipewire-0
+    public_socket=/run/user/$(id -u)/pipewire-0
+    while :; do
+        sleep 1s
+        if [ -S "${private_socket}" ]; then
+            ln -f "${private_socket}" "${public_socket}"
+            ln -f "${private_socket}.lock" "${public_socket}.lock"
+            return
+        fi
+    done
+}
+link_pipewire_socket &
+
 exec /snap/bin/ubuntu-desktop-session
