@@ -114,6 +114,7 @@ plugs:
   polkit-agent: null
   process-control: null
   shutdown: null
+  ssh-keys: null
   system-observe: null
   shell-config-files:
     interface: system-files
