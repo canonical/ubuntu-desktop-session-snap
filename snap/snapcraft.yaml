@@ -5,17 +5,9 @@ passthrough:
   base: core22-desktop
 summary: Ubuntu Desktop Session for the Ubuntu Core Desktop
 description: |
-  An attempt to strictly confine the standard Ubuntu desktop session.
-  A work in progress.
+  A strictly confined Ubuntu Desktop session for Ubuntu Core Desktop.
 
-  To add the session to the GDM greeter, run the following:
-
-      sudo /snap/ubuntu-desktop-session/current/setup.sh
-
-  This will connect various plugs and copy a desktop file to
-  /usr/share/wayland-sessions.
-
-grade: devel
+grade: stable
 confinement: strict
 architectures:
   - build-on: amd64
