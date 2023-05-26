@@ -1,5 +1,5 @@
 name: ubuntu-desktop-session
-version: '0'
+adopt-info: ubuntu-desktop-session
 build-base: core20
 passthrough:
   base: core22-desktop
@@ -353,3 +353,10 @@ parts:
   scripts:
     plugin: dump
     source: ./scripts
+  ubuntu-desktop-session:
+    plugin: nil
+    build-packages:
+      - git
+    override-build: |
+      cd $SNAPCRAFT_PROJECT_DIR
+      snapcraftctl set-version $(date +%Y%m%d)+git$(git rev-parse --short HEAD)
