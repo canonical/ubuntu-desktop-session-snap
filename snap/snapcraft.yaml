@@ -94,6 +94,7 @@ apps:
 plugs:
   bluez: null
   bluetooth-control: null
+  cups-control: null
   desktop-launch: null
   hardware-observe: null
   home: null
