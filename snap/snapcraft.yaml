@@ -92,11 +92,13 @@ apps:
         - dbus-freedesktop-impl-portal-gtk
 
 plugs:
+  avahi-control: null
   bluez: null
   bluetooth-control: null
   cups-control: null
   desktop-launch: null
   hardware-observe: null
+  hostname-control: null
   home: null
   login-session-observe: null
   login-session-control: null
