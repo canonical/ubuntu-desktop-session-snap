@@ -13,9 +13,15 @@ architectures:
   - build-on: amd64
     run-on: all
 
+environment:
+  HOME: $SNAP_REAL_HOME
+  XDG_CACHE_HOME: $SNAP_USER_COMMON/.cache
+  XDG_CONFIG_HOME: $SNAP_USER_COMMON/.config
+  XDG_DATA_HOME: $SNAP_USER_COMMON/.local/share
+
 apps:
   ubuntu-desktop-session:
-    command: desktop-launch.sh $SNAP/run-session.sh
+    command: run-session.sh
     slots:
       - wayland
       - x11
@@ -60,7 +66,7 @@ apps:
       - alsa
 
   gnome-terminal-server:
-    command: desktop-launch.sh $SNAP/run.sh /usr/libexec/gnome-terminal-server
+    command: run.sh /usr/libexec/gnome-terminal-server
     daemon: dbus
     passthrough:
       daemon-scope: user
@@ -68,7 +74,7 @@ apps:
         - dbus-gnome-terminal
 
   nautilus-service:
-    command: desktop-launch.sh $SNAP/run.sh /usr/bin/nautilus --gapplication-service
+    command: run.sh /usr/bin/nautilus --gapplication-service
     daemon: dbus
     passthrough:
       daemon-scope: user
@@ -76,7 +82,7 @@ apps:
         - dbus-gnome-nautilus
 
   xdg-desktop-portal-gnome:
-    command: desktop-launch.sh $SNAP/run.sh /usr/libexec/xdg-desktop-portal-gnome
+    command: run.sh /usr/libexec/xdg-desktop-portal-gnome
     daemon: dbus
     passthrough:
       daemon-scope: user
@@ -84,7 +90,7 @@ apps:
         - dbus-freedesktop-impl-portal-gnome
 
   xdg-desktop-portal-gtk:
-    command: desktop-launch.sh $SNAP/run.sh /usr/libexec/xdg-desktop-portal-gtk
+    command: run.sh /usr/libexec/xdg-desktop-portal-gtk
     daemon: dbus
     passthrough:
       daemon-scope: user
@@ -124,18 +130,6 @@ plugs:
       - /etc/xdg/user-dirs.conf
       - /etc/xdg/user-dirs.defaults
       - /run/udev/tags/seat
-  dot-cache:
-    interface: personal-files
-    write:
-      - $HOME/.cache
-  dot-config:
-    interface: personal-files
-    write:
-      - $HOME/.config
-  dot-local:
-    interface: personal-files
-    write:
-      - $HOME/.local
   upower-observe: null
 
 slots:
