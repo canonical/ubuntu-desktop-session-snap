@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# If xdg-user-dirs-update exists in $PATH, run it
+if command -v xdg-user-dirs-update >/dev/null; then
+  xdg-user-dirs-update
+fi
+
 # Ensure socket directories exist and have the right permissions
 mkdir -p /tmp/.X11-unix /tmp/.ICE-unix
 chmod 01777 /tmp/.X11-unix /tmp/.ICE-unix

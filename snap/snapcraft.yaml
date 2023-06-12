@@ -13,6 +13,12 @@ architectures:
   - build-on: amd64
     run-on: all
 
+environment:
+  HOME: $SNAP_REAL_HOME
+  XDG_CACHE_HOME: $SNAP_USER_COMMON/.cache
+  XDG_CONFIG_HOME: $SNAP_USER_COMMON/.config
+  XDG_DATA_HOME: $SNAP_USER_COMMON/.local/share
+
 apps:
   ubuntu-desktop-session:
     command: run-session.sh
