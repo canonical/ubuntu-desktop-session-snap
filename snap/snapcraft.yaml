@@ -127,8 +127,6 @@ plugs:
       - /etc/pulse
       - /etc/shells
       - /etc/xdg/autostart
-      - /etc/xdg/user-dirs.conf
-      - /etc/xdg/user-dirs.defaults
       - /run/udev/tags/seat
   upower-observe: null
 
