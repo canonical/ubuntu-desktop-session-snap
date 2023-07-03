@@ -2,7 +2,7 @@ name: ubuntu-desktop-session
 adopt-info: ubuntu-desktop-session
 build-base: core20
 passthrough:
-  base: core22-desktop
+  base: core24-desktop
 summary: Ubuntu Desktop Session for the Ubuntu Core Desktop
 description: |
   A strictly confined Ubuntu Desktop session for Ubuntu Core Desktop.
