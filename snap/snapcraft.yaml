@@ -128,6 +128,7 @@ apps:
       daemon-scope: user
       activates-on:
         - dbus-ibus-portal
+
   colord:
     command: run.sh /usr/libexec/colord-session
     daemon: dbus
@@ -402,7 +403,7 @@ slots:
     bus: session
   dbus-colord:
     interface: dbus
-    name: org.freedesktop.ColorManager
+    name: org.freedesktop.ColorHelper
     bus: session
 
 parts:
