@@ -129,6 +129,14 @@ apps:
       activates-on:
         - dbus-ibus-portal
 
+  colord:
+    command: run.sh /usr/libexec/colord-session
+    daemon: dbus
+    passthrough:
+      daemon-scope: user
+      activates-on:
+        - dbus-colord
+
 plugs:
   avahi-control: null
   bluez: null
@@ -392,6 +400,10 @@ slots:
   dbus-ibus-portal:
     interface: dbus
     name: org.freedesktop.portal.IBus
+    bus: session
+  dbus-colord:
+    interface: dbus
+    name: org.freedesktop.ColorHelper
     bus: session
 
 parts:
