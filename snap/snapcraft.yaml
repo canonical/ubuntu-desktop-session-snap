@@ -30,6 +30,7 @@ apps:
       - time-control
       - timeserver-control
       - timezone-control
+      - dot-config-files
 
   pipewire:
     command: run.sh /usr/bin/pipewire
@@ -159,6 +160,14 @@ plugs:
   shutdown: null
   ssh-keys: null
   system-observe: null
+  dot-config-files:
+    interface: personal-files
+    read:
+      - $HOME/.pam_environment
+      - $HOME/.xinputrc
+    write:
+      - $HOME/.pam_environment
+      - $HOME/.xinputrc
   shell-config-files:
     interface: system-files
     read:
@@ -170,6 +179,9 @@ plugs:
       - /etc/shells
       - /etc/xdg/autostart
       - /run/udev/tags/seat
+      - /etc/default/im-config
+      - /etc/X11/xinit/xinputrc
+      - /etc/default/locale
   upower-observe: null
 
 slots:
@@ -404,6 +416,10 @@ slots:
   dbus-colord:
     interface: dbus
     name: org.freedesktop.ColorHelper
+    bus: session
+  dbus-language-selector:
+    interface: dbus
+    name: com.ubuntu.GnomeLanguageSelector
     bus: session
 
 parts:
