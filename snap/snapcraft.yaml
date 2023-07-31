@@ -147,6 +147,10 @@ plugs:
     interface: personal-files
     write:
       - $HOME/.local/share/nautilus
+  dot-hidden:
+    interface: personal-files
+    write:
+      - $HOME/.hidden
   hardware-observe: null
   hostname-control: null
   home: null
