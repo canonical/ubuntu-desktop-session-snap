@@ -425,10 +425,6 @@ slots:
     interface: dbus
     name: org.freedesktop.ColorHelper
     bus: session
-  dbus-language-selector:
-    interface: dbus
-    name: com.ubuntu.GnomeLanguageSelector
-    bus: session
 
 parts:
   scripts:
