@@ -30,7 +30,7 @@ apps:
       - time-control
       - timeserver-control
       - timezone-control
-      - dot-config-files
+      - shell-session-locale-files
 
   pipewire:
     command: run.sh /usr/bin/pipewire
@@ -168,7 +168,7 @@ plugs:
   shutdown: null
   ssh-keys: null
   system-observe: null
-  dot-config-files:
+  shell-session-locale-files:
     interface: personal-files
     read:
       - $HOME/.pam_environment
