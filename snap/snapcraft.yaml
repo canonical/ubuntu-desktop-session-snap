@@ -27,6 +27,7 @@ apps:
       - x11
     plugs:
       - account-control
+      - locale-control
       - time-control
       - timeserver-control
       - timezone-control
