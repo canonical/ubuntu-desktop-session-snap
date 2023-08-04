@@ -171,9 +171,6 @@ plugs:
   system-observe: null
   shell-session-locale-files:
     interface: personal-files
-    read:
-      - $HOME/.pam_environment
-      - $HOME/.xinputrc
     write:
       - $HOME/.pam_environment
       - $HOME/.xinputrc
