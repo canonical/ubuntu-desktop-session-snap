@@ -15,7 +15,7 @@ mkdir -p --mode=700 $XDG_RUNTIME_DIR
 export PULSE_SERVER=unix:/run/user/`id -u`/pulse/native
 export GNOME_SHELL_SESSION_MODE=ubuntu
 
-if ! grep "^snap$" $HOME/.hidden 2>1 > /dev/null; then
+if ! grep "^snap$" $HOME/.hidden 2>&1 > /dev/null; then
   echo "snap" >> $HOME/.hidden
 fi
 
