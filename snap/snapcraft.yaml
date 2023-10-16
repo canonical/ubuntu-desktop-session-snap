@@ -76,7 +76,7 @@ apps:
         - dbus-gnome-terminal
 
   screencast-service:
-    command: run.sh /usr/bin/gjs /usr/share/gnome-shell/org.gnome.Shell.Screencast
+    command: run.sh /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.Shell.Screencast
     daemon: dbus
     passthrough:
       daemon-scope: user
