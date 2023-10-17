@@ -11,6 +11,8 @@ fi
 export XDG_CURRENT_DESKTOP=ubuntu:GNOME
 export GSETTINGS_BACKEND=keyfile
 
+mkdir -p --mode=700 $XDG_RUNTIME_DIR
+
 dbus-update-activation-environment --systemd --all
 
 # Don't set this in our own environment, since it will make
