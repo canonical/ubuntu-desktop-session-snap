@@ -98,6 +98,7 @@ apps:
       daemon-scope: user
       activates-on:
         - dbus-freedesktop-impl-portal-gnome
+    restart-delay: 1s
 
   xdg-desktop-portal-gtk:
     command: run.sh /usr/libexec/xdg-desktop-portal-gtk
@@ -106,6 +107,7 @@ apps:
       daemon-scope: user
       activates-on:
         - dbus-freedesktop-impl-portal-gtk
+    restart-delay: 1s
 
   ibus-service:
     command: run.sh /usr/bin/ibus-daemon --panel disable
