@@ -1,17 +1,17 @@
 name: ubuntu-desktop-session
 adopt-info: ubuntu-desktop-session
-build-base: core20
-passthrough:
-  base: core24-desktop
 summary: Ubuntu Desktop Session for the Ubuntu Core Desktop
 description: |
   A strictly confined Ubuntu Desktop session for Ubuntu Core Desktop.
 
 grade: stable
 confinement: strict
-architectures:
-  - build-on: amd64
-    run-on: all
+base: core24-desktop
+build-base: core24
+platforms:
+  all:
+    build-on: amd64
+    build-for: all
 
 environment:
   HOME: $SNAP_REAL_HOME
@@ -37,11 +37,10 @@ apps:
   pipewire:
     command: run.sh /usr/bin/pipewire
     daemon: simple
+    daemon-scope: user
     sockets:
       pipewire:
         listen-stream: $XDG_RUNTIME_DIR/pipewire-0
-    passthrough:
-      daemon-scope: user
     plugs:
       - alsa
     before:
@@ -50,19 +49,17 @@ apps:
   pipewire-pulse:
     command: run.sh /usr/bin/pipewire-pulse
     daemon: simple
+    daemon-scope: user
     sockets:
       pulse:
         listen-stream: $XDG_RUNTIME_DIR/pulse/native
-    passthrough:
-      daemon-scope: user
     plugs:
       - alsa
 
   wireplumber:
     command: run.sh /usr/bin/wireplumber
     daemon: simple
-    passthrough:
-      daemon-scope: user
+    daemon-scope: user
     after:
       - pipewire
     plugs:
@@ -71,76 +68,67 @@ apps:
   gnome-terminal-server:
     command: run.sh /usr/libexec/gnome-terminal-server
     daemon: dbus
-    passthrough:
-      daemon-scope: user
-      activates-on:
-        - dbus-gnome-terminal
+    daemon-scope: user
+    activates-on:
+      - dbus-gnome-terminal
 
   screencast-service:
     command: run.sh /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.Shell.Screencast
     daemon: dbus
-    passthrough:
-      daemon-scope: user
-      activates-on:
-        - dbus-gnome-shell-screencast
+    daemon-scope: user
+    activates-on:
+      - dbus-gnome-shell-screencast
 
   nautilus-service:
     command: run.sh /usr/bin/nautilus --gapplication-service
     daemon: dbus
-    passthrough:
-      daemon-scope: user
-      activates-on:
-        - dbus-gnome-nautilus
+    daemon-scope: user
+    activates-on:
+      - dbus-gnome-nautilus
 
   xdg-desktop-portal-gnome:
     command: run.sh /usr/libexec/xdg-desktop-portal-gnome
     daemon: dbus
-    passthrough:
-      daemon-scope: user
-      activates-on:
-        - dbus-freedesktop-impl-portal-gnome
+    daemon-scope: user
+    activates-on:
+      - dbus-freedesktop-impl-portal-gnome
     restart-delay: 1s
 
   #xdg-desktop-portal-gtk:
   #  command: run.sh /usr/libexec/xdg-desktop-portal-gtk
   #  daemon: dbus
-  #  passthrough:
-  #    daemon-scope: user
-  #    activates-on:
-  #      - dbus-freedesktop-impl-portal-gtk
+  #  daemon-scope: user
+  #  activates-on:
+  #    - dbus-freedesktop-impl-portal-gtk
   #  restart-delay: 1s
 
   ibus-service:
     command: run.sh /usr/bin/ibus-daemon --panel disable
     daemon: dbus
-    passthrough:
-      daemon-scope: user
-      activates-on:
-        - dbus-ibus
+    daemon-scope: user
+    activates-on:
+      - dbus-ibus
 
   ibus-gtk3-service:
     command: run.sh /usr/libexec/ibus-extension-gtk3
     daemon: dbus
-    passthrough:
-      daemon-scope: user
-      activates-on:
-        - dbus-ibus-gtk3
+    daemon-scope: user
+    activates-on:
+      - dbus-ibus-gtk3
 
   ibus-portal-service:
     command: run.sh /usr/libexec/ibus-portal
     daemon: dbus
-    passthrough:
-      daemon-scope: user
-      activates-on:
-        - dbus-ibus-portal
+    daemon-scope: user
+    activates-on:
+      - dbus-ibus-portal
 
   colord:
     command: run.sh /usr/libexec/colord-session
     daemon: dbus
-    passthrough:
-      daemon-scope: user
-      activates-on:
-        - dbus-colord
+    daemon-scope: user
+    activates-on:
+      - dbus-colord
 
 plugs:
   avahi-control: null
@@ -440,5 +428,5 @@ parts:
     build-packages:
       - git
     override-build: |
-      cd $SNAPCRAFT_PROJECT_DIR
-      snapcraftctl set-version $(date +%Y%m%d)+git$(git rev-parse --short HEAD)
+      cd $CRAFT_PROJECT_DIR
+      craftctl set version=$(date +%Y%m%d)+git$(git rev-parse --short HEAD)
