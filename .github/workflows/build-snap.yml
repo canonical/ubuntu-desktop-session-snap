@@ -1,0 +1,22 @@
+name: build-snap
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 22
+      - 24
+
+jobs:
+  snap:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: snapcore/action-build@v1
+      id: snapcraft
+    - uses: actions/upload-artifact@v4
+      with:
+        name: 'snap'
+        path: ${{ steps.snapcraft.outputs.snap}}
+        compression-level: 0 # No need to double-compress the snap
+        retention-days: 7
