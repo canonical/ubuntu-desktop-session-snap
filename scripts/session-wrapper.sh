@@ -47,37 +47,4 @@ function link_wayland_socket() {
 }
 link_wayland_socket &
 
-# Wait in background to link Pulseaudio socket to location where other
-# snaps will look for it.
-function link_pulse_socket() {
-    private_socket=/run/user/$(id -u)/snap.ubuntu-desktop-session/pulse
-    public_socket=/run/user/$(id -u)/pulse
-    mkdir -p $public_socket
-    while :; do
-        sleep 1s
-        if [ -S "${private_socket}/native" ]; then
-            ln -f "${private_socket}/native" "${public_socket}/native"
-            ln -f "${private_socket}/pid" "${public_socket}/pid"
-            return
-        fi
-    done
-}
-link_pulse_socket &
-
-# Wait in background to link Pipewire socket to location where other
-# snaps will look for it.
-function link_pipewire_socket() {
-    private_socket=/run/user/$(id -u)/snap.ubuntu-desktop-session/pipewire-0
-    public_socket=/run/user/$(id -u)/pipewire-0
-    while :; do
-        sleep 1s
-        if [ -S "${private_socket}" ]; then
-            ln -f "${private_socket}" "${public_socket}"
-            ln -f "${private_socket}.lock" "${public_socket}.lock"
-            return
-        fi
-    done
-}
-link_pipewire_socket &
-
 exec /snap/bin/ubuntu-desktop-session
