@@ -26,6 +26,7 @@ apps:
     slots:
       - wayland
       - x11
+      - dbus-gnome-mutter-service-channel
     plugs:
       - account-control
       - locale-control
@@ -211,6 +212,10 @@ slots:
     interface: dbus
     bus: session
     name: org.gnome.Mutter.ScreenCast
+  dbus-gnome-mutter-service-channel:
+    interface: dbus
+    bus: session
+    name: org.gnome.Mutter.ServiceChannel
   dbus-gnome-panel:
     interface: dbus
     bus: session
@@ -359,17 +364,9 @@ slots:
     interface: dbus
     bus: session
     name: com.rastersoft.dingextension
-  dbus-pulseaudio-server:
-    interface: dbus
-    bus: session
-    name: org.pulseaudio.Server
   dbus-portal:
     interface: dbus
     name: org.freedesktop.impl.portal.PermissionStore
-    bus: session
-  dbus-wireplumber:
-    interface: dbus
-    name: org.freedesktop.ReserveDevice1
     bus: session
   dbus-ibus:
     interface: dbus
