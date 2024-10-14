@@ -196,10 +196,10 @@ slots:
     interface: dbus
     bus: session
     name: org.gnome.Magnifier
-#  dbus-gnome-mutter-displayconfig:
-#    interface: dbus
-#    bus: session
-#    name: org.gnome.Mutter.DisplayConfig
+  dbus-gnome-mutter-displayconfig:
+    interface: dbus
+    bus: session
+    name: org.gnome.Mutter.DisplayConfig
   dbus-gnome-mutter-idlemonitor:
     interface: dbus
     bus: session
@@ -212,10 +212,10 @@ slots:
     interface: dbus
     bus: session
     name: org.gnome.Mutter.ScreenCast
-  dbus-gnome-mutter-service-channel:
-    interface: dbus
-    bus: session
-    name: org.gnome.Mutter.ServiceChannel
+  #dbus-gnome-mutter-service-channel:
+  #  interface: dbus
+  #  bus: session
+  #  name: org.gnome.Mutter.ServiceChannel
   dbus-gnome-panel:
     interface: dbus
     bus: session
