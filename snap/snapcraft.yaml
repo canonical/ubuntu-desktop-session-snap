@@ -26,7 +26,7 @@ apps:
     slots:
       - wayland
       - x11
-      - dbus-gnome-mutter-service-channel
+#      - dbus-gnome-mutter-service-channel
     plugs:
       - account-control
       - locale-control
@@ -196,10 +196,10 @@ slots:
     interface: dbus
     bus: session
     name: org.gnome.Magnifier
-  dbus-gnome-mutter-displayconfig:
-    interface: dbus
-    bus: session
-    name: org.gnome.Mutter.DisplayConfig
+#  dbus-gnome-mutter-displayconfig:
+#    interface: dbus
+#    bus: session
+#    name: org.gnome.Mutter.DisplayConfig
   dbus-gnome-mutter-idlemonitor:
     interface: dbus
     bus: session
