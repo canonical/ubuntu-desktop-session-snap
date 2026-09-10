@@ -6,8 +6,7 @@ description: |
 
 grade: stable
 confinement: strict
-base: core24-desktop
-build-base: core24
+base: core26
 platforms:
   all:
     build-on: amd64
@@ -34,6 +33,7 @@ apps:
       - timeserver-control
       - timezone-control
       - shell-session-locale-files
+      - systemd-user-control
 
   gnome-terminal-server:
     command: run.sh /usr/libexec/gnome-terminal-server
