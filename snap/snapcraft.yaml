@@ -6,7 +6,8 @@ description: |
 
 grade: stable
 confinement: strict
-base: core26
+base: core26-desktop
+build-base: core26
 platforms:
   all:
     build-on: amd64

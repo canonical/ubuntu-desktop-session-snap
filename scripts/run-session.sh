@@ -20,4 +20,4 @@ if ! grep "^snap$" $HOME/.hidden 2>&1 > /dev/null; then
   echo "snap" >> $HOME/.hidden
 fi
 
-exec /usr/bin/gnome-session --builtin --session=ubuntu
+exec /usr/bin/gnome-session --session=ubuntu
