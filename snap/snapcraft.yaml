@@ -42,6 +42,8 @@ apps:
     daemon-scope: user
     activates-on:
       - dbus-gnome-terminal
+    plugs:
+      - wayland-client
 
   screencast-service:
     command: run.sh /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.Shell.Screencast
@@ -102,6 +104,8 @@ apps:
       - dbus-colord
 
 plugs:
+  wayland-client:
+    interface: wayland
   avahi-control: null
   audio-playback: null
   audio-record: null
