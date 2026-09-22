@@ -6,7 +6,7 @@ description: |
 
 grade: stable
 confinement: strict
-base: bare
+base: core26-desktop
 build-base: core26
 platforms:
   all:
@@ -102,6 +102,584 @@ apps:
     daemon-scope: user
     activates-on:
       - dbus-colord
+
+  dconf-service:
+    command: run.sh /usr/libexec/dconf-service
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  dirmngr:
+    command: run.sh /usr/bin/dirmngr
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  gcr-prompter:
+    command: run.sh /usr/libexec/gcr-prompter
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gcr-ssh-agent:
+    command: run.sh /usr/libexec/gcr-ssh-agent
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  glib-pacrunner:
+    command: run.sh /usr/libexec/glib-pacrunner
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  gnome-control-center:
+    command: run.sh /usr/bin/gnome-control-center
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gnome-control-center-global-shortcuts-provider:
+    command: run.sh /usr/libexec/gnome-control-center-global-shortcuts-provider
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  gnome-control-center-search-provider:
+    command: run.sh /usr/libexec/gnome-control-center-search-provider
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  gnome-extensions-app:
+    command: run.sh /usr/bin/gnome-extensions-app
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gnome-initial-setup:
+    command: run.sh /usr/libexec/gnome-initial-setup
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gnome-initial-setup-wrapper:
+    command: run.sh /usr/libexec/gnome-initial-setup-wrapper
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gnome-keyring-daemon:
+    command: run.sh /usr/bin/gnome-keyring-daemon
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  gnome-session-ctl:
+    command: run.sh /usr/libexec/gnome-session-ctl
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  gnome-session-service:
+    command: run.sh /usr/libexec/gnome-session-service
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  gnome-shell:
+    command: run.sh /usr/bin/gnome-shell
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gnome-shell-calendar-server:
+    command: run.sh /usr/libexec/gnome-shell-calendar-server
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  gnome-shell-extensions:
+    command: run.sh /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.Shell.Extensions
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gnome-shell-hotplug-sniffer:
+    command: run.sh /usr/libexec/gnome-shell-hotplug-sniffer
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  gnome-shell-notifications:
+    command: run.sh /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.Shell.Notifications
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gnome-shell-screensaver:
+    command: run.sh /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.ScreenSaver
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  goa-daemon:
+    command: run.sh /usr/libexec/goa-daemon
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  goa-identity-service:
+    command: run.sh /usr/libexec/goa-identity-service
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  gpg-agent:
+    command: run.sh /usr/bin/gpg-agent
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  gsd-a11y-settings:
+    command: run.sh /usr/libexec/gsd-a11y-settings
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gsd-color:
+    command: run.sh /usr/libexec/gsd-color
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gsd-datetime:
+    command: run.sh /usr/libexec/gsd-datetime
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gsd-housekeeping:
+    command: run.sh /usr/libexec/gsd-housekeeping
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gsd-keyboard:
+    command: run.sh /usr/libexec/gsd-keyboard
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gsd-media-keys:
+    command: run.sh /usr/libexec/gsd-media-keys
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gsd-power:
+    command: run.sh /usr/libexec/gsd-power
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gsd-print-notifications:
+    command: run.sh /usr/libexec/gsd-print-notifications
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gsd-rfkill:
+    command: run.sh /usr/libexec/gsd-rfkill
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gsd-screensaver-proxy:
+    command: run.sh /usr/libexec/gsd-screensaver-proxy
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gsd-sharing:
+    command: run.sh /usr/libexec/gsd-sharing
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gsd-smartcard:
+    command: run.sh /usr/libexec/gsd-smartcard
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gsd-sound:
+    command: run.sh /usr/libexec/gsd-sound
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gsd-usb-protection:
+    command: run.sh /usr/libexec/gsd-usb-protection
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gsd-wwan:
+    command: run.sh /usr/libexec/gsd-wwan
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gsd-xsettings:
+    command: run.sh /usr/libexec/gsd-xsettings
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  gvfs-afc-volume-monitor:
+    command: run.sh /usr/libexec/gvfs-afc-volume-monitor
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  gvfs-goa-volume-monitor:
+    command: run.sh /usr/libexec/gvfs-goa-volume-monitor
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  gvfs-gphoto2-volume-monitor:
+    command: run.sh /usr/libexec/gvfs-gphoto2-volume-monitor
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  gvfs-mtp-volume-monitor:
+    command: run.sh /usr/libexec/gvfs-mtp-volume-monitor
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  gvfs-udisks2-volume-monitor:
+    command: run.sh /usr/libexec/gvfs-udisks2-volume-monitor
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  gvfsd:
+    command: run.sh /usr/libexec/gvfsd
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  gvfsd-metadata:
+    command: run.sh /usr/libexec/gvfsd-metadata
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  keyboxd:
+    command: run.sh /usr/lib/gnupg/keyboxd
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  localsearch-3:
+    command: run.sh /usr/libexec/localsearch-3
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  localsearch-control-3:
+    command: run.sh /usr/libexec/localsearch-control-3
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  localsearch-writeback-3:
+    command: run.sh /usr/libexec/localsearch-writeback-3
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  spice-vdagent:
+    command: run.sh /usr/bin/spice-vdagent
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  ssh-agent:
+    command: run.sh /usr/bin/ssh-agent
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  tinysparql-xdg-portal-3:
+    command: run.sh /usr/libexec/tinysparql-xdg-portal-3
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  user-session-migration:
+    command: run.sh /usr/bin/user-session-migration
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  xdg-desktop-portal:
+    command: run.sh /usr/libexec/xdg-desktop-portal
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  xdg-desktop-portal-gtk:
+    command: run.sh /usr/libexec/xdg-desktop-portal-gtk
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  xdg-desktop-portal-rewrite-launchers:
+    command: run.sh /usr/libexec/xdg-desktop-portal-rewrite-launchers
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  xdg-document-portal:
+    command: run.sh /usr/libexec/xdg-document-portal
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  xdg-permission-store:
+    command: run.sh /usr/libexec/xdg-permission-store
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+  xdg-user-dirs-gtk-update:
+    command: run.sh /usr/bin/xdg-user-dirs-gtk-update
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - wayland-client
+  xdg-user-dirs-update:
+    command: run.sh /usr/bin/xdg-user-dirs-update
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
 
 plugs:
   wayland-client:
