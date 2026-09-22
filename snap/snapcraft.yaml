@@ -236,6 +236,9 @@ apps:
       - systemd-user-control
   gnome-shell:
     command: run.sh /usr/bin/gnome-shell
+    slots:
+      - wayland
+      - x11
     plugs:
       - account-control
       - locale-control
