@@ -20,6 +20,16 @@ environment:
   XDG_DATA_HOME: $SNAP_USER_COMMON/.local/share
   XDG_STATE_HOME: $SNAP_USER_COMMON/.local/state
 
+# Redirects /usr/bin/fusermount3 (present in the core26-desktop base) to
+# our own shim, which talks to the privileged xdg-fuse-broker instead of
+# relying on fusermount3's setuid bit (defeated by confinement -- see
+# notes/resume2.txt). layout: bind-mounts are snap-global (not scoped per
+# app), but xdg-document-portal is the only app in this snap that invokes
+# FUSE/fusermount3, so this redirect is safe for the whole snap.
+layout:
+  /usr/bin/fusermount3:
+    bind-file: $SNAP/usr/libexec/ubuntu-desktop-session/fusermount3
+
 apps:
   ubuntu-desktop-session:
     command: run-session.sh
@@ -648,6 +658,25 @@ apps:
       - systemd-user-control
   xdg-document-portal:
     command: run.sh /usr/libexec/xdg-document-portal
+    daemon: dbus
+    daemon-scope: user
+    activates-on:
+      - dbus-freedesktop-portal-documents
+    restart-delay: 1s
+    # `snap run` privatizes XDG_RUNTIME_DIR to /run/user/<uid>/snap.<name>/
+    # for every app (see the WAYLAND_DISPLAY comment in scripts/run.sh for
+    # the same pattern applied to another well-known runtime path). But
+    # xdg-document-portal's FUSE mount (and the D-Bus paths it hands out)
+    # must land at the plain, global /run/user/<uid>/doc: that's the one
+    # location snapd's own tooling (cmd_run.go's desktop-launch check, and
+    # the `desktop` interface's AppArmor bind-mount rule) hardcodes for
+    # every other snap to find the document portal. Override just this
+    # app's view back to the real, unprivatized runtime dir so it
+    # generates the correct global path; nothing else this daemon touches
+    # (state under XDG_DATA_HOME/XDG_CONFIG_HOME, already redirected above)
+    # depends on XDG_RUNTIME_DIR.
+    environment:
+      XDG_RUNTIME_DIR: /run/user/$SNAP_UID
     plugs:
       - account-control
       - locale-control
@@ -655,6 +684,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - fuse-device
   xdg-permission-store:
     command: run.sh /usr/libexec/xdg-permission-store
     plugs:
@@ -750,6 +780,10 @@ slots:
     interface: dbus
     bus: session
     name: org.freedesktop.impl.portal.desktop.gnome
+  dbus-freedesktop-portal-documents:
+    interface: dbus
+    bus: session
+    name: org.freedesktop.portal.Documents
   dbus-freedesktop-impl-portal-gtk:
     interface: dbus
     bus: session
@@ -975,6 +1009,16 @@ parts:
   scripts:
     plugin: dump
     source: ./scripts
+  fusermount3-shim:
+    plugin: nil
+    source: fusermount3-shim/
+    build-packages:
+      - golang
+    override-build: |
+      cd "${CRAFT_PART_SRC}"
+      CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o fusermount3 .
+      mkdir -p "${CRAFT_PART_INSTALL}/usr/libexec/ubuntu-desktop-session"
+      install -m 755 fusermount3 "${CRAFT_PART_INSTALL}/usr/libexec/ubuntu-desktop-session/fusermount3"
   ubuntu-desktop-session:
     plugin: nil
     build-packages:
