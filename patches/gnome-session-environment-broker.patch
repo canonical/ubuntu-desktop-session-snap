@@ -1,0 +1,314 @@
+--- a/gnome-session/gsm-util.c
++++ b/gnome-session/gsm-util.c
+@@ -51,41 +51,6 @@
+     NULL
+ };
+ 
+-/* The following is copied from GDMs spawn_session function.
+- *
+- * Environment variables listed here will be copied into the user's service
+- * environments if they are set in gnome-session's environment. If they are
+- * not set in gnome-session's environment, they will be removed from the
+- * service environments. This is to protect against environment variables
+- * leaking from previous sessions (e.g. when switching from classic to
+- * default GNOME $GNOME_SHELL_SESSION_MODE will become unset).
+- */
+-static const char * const variable_unsetlist[] = {
+-    "DISPLAY",
+-    "XAUTHORITY",
+-    "WAYLAND_DISPLAY",
+-    "WAYLAND_SOCKET",
+-    "GNOME_SHELL_SESSION_MODE",
+-    "GNOME_SETUP_DISPLAY",
+-
+-    /* None of the LC_* variables should survive a logout/login */
+-    "LC_CTYPE",
+-    "LC_NUMERIC",
+-    "LC_TIME",
+-    "LC_COLLATE",
+-    "LC_MONETARY",
+-    "LC_MESSAGES",
+-    "LC_PAPER",
+-    "LC_NAME",
+-    "LC_ADDRESS",
+-    "LC_TELEPHONE",
+-    "LC_MEASUREMENT",
+-    "LC_IDENTIFICATION",
+-    "LC_ALL",
+-
+-    NULL
+-};
+-
+ char **
+ gsm_util_get_app_dirs ()
+ {
+@@ -180,13 +145,12 @@
+ }
+ 
+ static gboolean
+-gsm_util_update_activation_environment (const char  *variable,
+-                                        const char  *value,
+-                                        GError     **error)
++gsm_util_update_session_environment (GVariant  *set_environment,
++                                     GVariant  *unset_environment,
++                                     GError   **error)
+ {
+         GDBusConnection *connection;
+         gboolean         environment_updated;
+-        GVariantBuilder  builder;
+         GVariant        *reply;
+         GError          *bus_error = NULL;
+ 
+@@ -197,16 +161,14 @@
+                 return FALSE;
+         }
+ 
+-        g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{ss}"));
+-        g_variant_builder_add (&builder, "{ss}", variable, value);
+-
+         reply = g_dbus_connection_call_sync (connection,
+-                                             "org.freedesktop.DBus",
+-                                             "/org/freedesktop/DBus",
+-                                             "org.freedesktop.DBus",
+-                                             "UpdateActivationEnvironment",
+-                                             g_variant_new ("(@a{ss})",
+-                                                            g_variant_builder_end (&builder)),
++                                             "org.ubuntu.SessionEnvironmentBroker",
++                                             "/org/ubuntu/SessionEnvironmentBroker",
++                                             "org.ubuntu.SessionEnvironmentBroker",
++                                             "UpdateEnvironment",
++                                             g_variant_new ("(@a{ss}@as)",
++                                                            set_environment,
++                                                            unset_environment),
+                                              NULL,
+                                              G_DBUS_CALL_FLAGS_NONE,
+                                              -1, NULL, &bus_error);
+@@ -234,20 +196,9 @@
+ gsm_util_export_activation_environment (GError     **error)
+ {
+ 
+-        GDBusConnection *connection;
+-        gboolean         environment_updated = FALSE;
+         char           **entry_names;
+         int              i = 0;
+-        GVariantBuilder  builder;
+         GRegex          *name_regex, *value_regex;
+-        GVariant        *reply;
+-        GError          *bus_error = NULL;
+-
+-        connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, error);
+-
+-        if (connection == NULL) {
+-                return FALSE;
+-        }
+ 
+         name_regex = g_regex_new ("^" ENV_NAME_PATTERN "$", G_REGEX_OPTIMIZE, 0, error);
+ 
+@@ -266,7 +217,6 @@
+                 child_environment = g_listenv ();
+         }
+ 
+-        g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{ss}"));
+         for (entry_names = g_listenv (); entry_names[i] != NULL; i++) {
+                 const char *entry_name = entry_names[i];
+                 const char *entry_value = g_getenv (entry_name);
+@@ -286,160 +236,28 @@
+                 child_environment = g_environ_setenv (child_environment,
+                                                       entry_name, entry_value,
+                                                       TRUE);
+-                g_variant_builder_add (&builder, "{ss}", entry_name, entry_value);
+         }
+         g_regex_unref (name_regex);
+         g_regex_unref (value_regex);
+ 
+         g_strfreev (entry_names);
+ 
+-        reply = g_dbus_connection_call_sync (connection,
+-                                             "org.freedesktop.DBus",
+-                                             "/org/freedesktop/DBus",
+-                                             "org.freedesktop.DBus",
+-                                             "UpdateActivationEnvironment",
+-                                             g_variant_new ("(@a{ss})",
+-                                                            g_variant_builder_end (&builder)),
+-                                             NULL,
+-                                             G_DBUS_CALL_FLAGS_NONE,
+-                                             -1, NULL, &bus_error);
+-
+-        if (bus_error != NULL) {
+-                g_propagate_error (error, bus_error);
+-        } else {
+-                environment_updated = TRUE;
+-                g_variant_unref (reply);
+-        }
+-
+-        g_clear_object (&connection);
+-
+-        return environment_updated;
++        /* The host session wrapper seeds a small, validated environment before
++         * the confined session starts. Never bulk-export this process's
++         * environment: it includes snap-private values and paths. Subsequent
++         * compositor updates are forwarded through the filtered broker. */
++        return TRUE;
+ }
+ 
+ gboolean
+ gsm_util_export_user_environment (GError     **error)
+ {
++        (void) error;
+ 
+-        GDBusConnection *connection;
+-        gboolean         environment_updated = FALSE;
+-        char           **entries;
+-        int              i = 0;
+-        GVariantBuilder  builder;
+-        GRegex          *regex;
+-        GVariant        *reply;
+-        GError          *bus_error = NULL;
+-
+-        connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, error);
+-
+-        if (connection == NULL) {
+-                return FALSE;
+-        }
+-
+-        regex = g_regex_new ("^" ENV_NAME_PATTERN "=" ENV_VALUE_PATTERN "$", G_REGEX_OPTIMIZE, 0, error);
+-
+-        if (regex == NULL) {
+-                return FALSE;
+-        }
+-
+-        entries = g_get_environ ();
+-
+-        for (i = 0; variable_blacklist[i] != NULL; i++)
+-                entries = g_environ_unsetenv (entries, variable_blacklist[i]);
+-
+-        g_variant_builder_init (&builder, G_VARIANT_TYPE ("(asas)"));
+-
+-        g_variant_builder_open (&builder, G_VARIANT_TYPE ("as"));
+-        for (i = 0; variable_unsetlist[i] != NULL; i++)
+-                g_variant_builder_add (&builder, "s", variable_unsetlist[i]);
+-        for (i = 0; variable_blacklist[i] != NULL; i++)
+-                g_variant_builder_add (&builder, "s", variable_blacklist[i]);
+-        g_variant_builder_close (&builder);
+-
+-        g_variant_builder_open (&builder, G_VARIANT_TYPE ("as"));
+-        for (i = 0; entries[i] != NULL; i++) {
+-                const char *entry = entries[i];
+-
+-                if (!g_utf8_validate (entry, -1, NULL) ||
+-                    !g_regex_match (regex, entry, 0, NULL)) {
+-
+-                    g_message ("Environment entry is unsafe to upload into user environment: %s", entry);
+-                    continue;
+-                }
+-
+-                g_variant_builder_add (&builder, "s", entry);
+-        }
+-        g_variant_builder_close (&builder);
+-        g_regex_unref (regex);
+-
+-        g_strfreev (entries);
+-
+-        reply = g_dbus_connection_call_sync (connection,
+-                                             "org.freedesktop.systemd1",
+-                                             "/org/freedesktop/systemd1",
+-                                             "org.freedesktop.systemd1.Manager",
+-                                             "UnsetAndSetEnvironment",
+-                                             g_variant_builder_end (&builder),
+-                                             NULL,
+-                                             G_DBUS_CALL_FLAGS_NO_AUTO_START,
+-                                             -1, NULL, &bus_error);
+-
+-        if (bus_error != NULL) {
+-                g_propagate_error (error, bus_error);
+-        } else {
+-                environment_updated = TRUE;
+-                g_variant_unref (reply);
+-        }
+-
+-        g_clear_object (&connection);
+-
+-        return environment_updated;
+-}
+-
+-static gboolean
+-gsm_util_update_user_environment (const char  *variable,
+-                                  const char  *value,
+-                                  GError     **error)
+-{
+-        GDBusConnection *connection;
+-        gboolean         environment_updated;
+-        char            *entry;
+-        GVariantBuilder  builder;
+-        GVariant        *reply;
+-        GError          *bus_error = NULL;
+-
+-        environment_updated = FALSE;
+-        connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, error);
+-
+-        if (connection == NULL) {
+-                return FALSE;
+-        }
+-
+-        g_variant_builder_init (&builder, G_VARIANT_TYPE ("as"));
+-        entry = g_strdup_printf ("%s=%s", variable, value);
+-        g_variant_builder_add (&builder, "s", entry);
+-        g_free (entry);
+-
+-        reply = g_dbus_connection_call_sync (connection,
+-                                             "org.freedesktop.systemd1",
+-                                             "/org/freedesktop/systemd1",
+-                                             "org.freedesktop.systemd1.Manager",
+-                                             "SetEnvironment",
+-                                             g_variant_new ("(@as)",
+-                                                            g_variant_builder_end (&builder)),
+-                                             NULL,
+-                                             G_DBUS_CALL_FLAGS_NO_AUTO_START,
+-                                             -1, NULL, &bus_error);
+-
+-        if (bus_error != NULL) {
+-                g_propagate_error (error, bus_error);
+-        } else {
+-                environment_updated = TRUE;
+-                g_variant_unref (reply);
+-        }
+-
+-        g_clear_object (&connection);
+-
+-        return environment_updated;
++        /* The wrapper has already seeded the host user manager environment.
++         * Do not grant the session bootstrap process bulk-write access; only
++         * the session manager's Setenv handler can call the broker. */
++        return TRUE;
+ }
+ 
+ void
+@@ -459,15 +277,20 @@
+         /* If this fails it isn't fatal, it means some things like session
+          * management and keyring won't work in activated clients.
+          */
+-        if (!gsm_util_update_activation_environment (variable, value, &error)) {
+-                g_warning ("Could not make bus activated clients aware of %s=%s environment variable: %s", variable, value, error->message);
+-                g_clear_error (&error);
+-        }
++        GVariantBuilder set_builder, unset_builder;
+ 
+-        /* If this fails, the system user session won't get the updated environment
+-         */
+-        if (!gsm_util_update_user_environment (variable, value, &error)) {
+-                g_debug ("Could not make systemd aware of %s=%s environment variable: %s", variable, value, error->message);
++        g_variant_builder_init (&set_builder, G_VARIANT_TYPE ("a{ss}"));
++        g_variant_builder_init (&unset_builder, G_VARIANT_TYPE ("as"));
++        if (value && *value)
++                g_variant_builder_add (&set_builder, "{ss}", variable, value);
++        else
++                g_variant_builder_add (&unset_builder, "s", variable);
++
++        if (!gsm_util_update_session_environment (g_variant_builder_end (&set_builder),
++                                                 g_variant_builder_end (&unset_builder),
++                                                 &error)) {
++                g_warning ("Could not update the shared session environment for %s: %s",
++                           variable, error->message);
+                 g_clear_error (&error);
+         }
+ }

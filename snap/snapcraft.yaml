@@ -77,14 +77,6 @@ apps:
       - dbus-freedesktop-impl-portal-gnome
     restart-delay: 1s
 
-  #xdg-desktop-portal-gtk:
-  #  command: run.sh /usr/libexec/xdg-desktop-portal-gtk
-  #  daemon: dbus
-  #  daemon-scope: user
-  #  activates-on:
-  #    - dbus-freedesktop-impl-portal-gtk
-  #  restart-delay: 1s
-
   ibus-service:
     command: run.sh /usr/bin/ibus-daemon --panel disable
     daemon: dbus
@@ -236,7 +228,7 @@ apps:
       - timezone-control
       - systemd-user-control
   gnome-session-service:
-    command: run.sh /usr/libexec/gnome-session-service
+    command: run.sh $SNAP/usr/libexec/ubuntu-desktop-session/gnome-session-service
     plugs:
       - account-control
       - locale-control
@@ -244,6 +236,18 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - session-environment-broker-client
+  session-environment-broker:
+    command: usr/libexec/ubuntu-desktop-session/session-environment-broker
+    daemon: dbus
+    daemon-scope: user
+    activates-on:
+      - dbus-session-environment-broker
+    plugs:
+      - systemd-user-environment
+    slots:
+      - dbus-session-environment-broker
+      - session-environment-broker-api
   gnome-shell:
     command: run.sh /usr/bin/gnome-shell
     slots:
@@ -639,6 +643,11 @@ apps:
       - systemd-user-control
   xdg-desktop-portal-gtk:
     command: run.sh /usr/libexec/xdg-desktop-portal-gtk
+    daemon: dbus
+    daemon-scope: user
+    activates-on:
+      - dbus-freedesktop-impl-portal-gtk
+    restart-delay: 1s
     plugs:
       - account-control
       - locale-control
@@ -715,6 +724,8 @@ apps:
       - systemd-user-control
 
 plugs:
+  session-environment-broker-client:
+    interface: session-environment-broker
   wayland-client:
     interface: wayland
   avahi-control: null
@@ -772,6 +783,12 @@ plugs:
 
 slots:
   desktop: null
+  session-environment-broker-api:
+    interface: session-environment-broker
+  dbus-session-environment-broker:
+    interface: dbus
+    bus: session
+    name: org.ubuntu.SessionEnvironmentBroker
   dbus-canonical-unity:
     interface: dbus
     bus: session
@@ -1006,6 +1023,51 @@ slots:
     bus: session
 
 parts:
+  gnome-session-patched:
+    plugin: nil
+    source: https://download.gnome.org/sources/gnome-session/50/gnome-session-50.0.tar.xz
+    source-type: tar
+    build-packages:
+      - build-essential
+      - gettext
+      - libdbus-1-dev
+      - libgl-dev
+      - libgles-dev
+      - libglib2.0-dev
+      - libgnome-desktop-4-dev
+      - libice-dev
+      - libsm-dev
+      - libsystemd-dev
+      - meson
+      - ninja-build
+      - pkg-config
+      - systemd-dev
+      - xmlto
+      - xsltproc
+    override-build: |
+      patch -p1 < "${CRAFT_PROJECT_DIR}/patches/gnome-session-dbus-request-shutdown.patch"
+      patch -p1 < "${CRAFT_PROJECT_DIR}/patches/gnome-session-environment-broker.patch"
+      meson setup build \
+        --prefix=/usr \
+        --libexecdir=libexec \
+        -Ddocbook=false \
+        -Dman=false \
+        -Dmimeapps=false \
+        -Dsystemduserunitdir=/usr/lib/systemd/user
+      meson compile -C build gnome-session-service
+      install -D -m 0755 build/gnome-session/gnome-session-service \
+        "${CRAFT_PART_INSTALL}/usr/libexec/ubuntu-desktop-session/gnome-session-service"
+  environment-broker:
+    plugin: nil
+    source: environment-broker/
+    build-packages:
+      - golang
+    override-build: |
+      cd "${CRAFT_PART_SRC}"
+      go mod download
+      CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o session-environment-broker .
+      install -D -m 0755 session-environment-broker \
+        "${CRAFT_PART_INSTALL}/usr/libexec/ubuntu-desktop-session/session-environment-broker"
   scripts:
     plugin: dump
     source: ./scripts

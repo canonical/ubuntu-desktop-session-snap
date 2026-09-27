@@ -1,0 +1,61 @@
+--- a/gnome-session/gsm-manager.c
++++ b/gnome-session/gsm-manager.c
+@@ -1426,6 +1426,22 @@ gsm_manager_reboot (GsmExportedManager    *skeleton,
+         return TRUE;
+ }
+ 
++static gboolean
++gsm_manager_request_shutdown (GsmExportedManager    *skeleton,
++                              GDBusMethodInvocation *invocation,
++                              GsmManager            *manager)
++{
++        return gsm_manager_shutdown(skeleton, invocation, manager);
++}
++
++static gboolean
++gsm_manager_request_reboot (GsmExportedManager    *skeleton,
++                            GDBusMethodInvocation *invocation,
++                            GsmManager            *manager)
++{
++        return gsm_manager_reboot(skeleton, invocation, manager);
++}
++
+ static gboolean
+ gsm_manager_suspend (GsmExportedManager    *skeleton,
+                      GDBusMethodInvocation *invocation,
+@@ -2094,6 +2110,10 @@ register_manager (GsmManager *manager)
+                           G_CALLBACK (gsm_manager_is_session_running), manager);
+         g_signal_connect (skeleton, "handle-logout",
+                           G_CALLBACK (gsm_manager_logout_dbus), manager);
++        g_signal_connect (skeleton, "handle-request-reboot",
++                          G_CALLBACK (gsm_manager_request_reboot), manager);
++        g_signal_connect (skeleton, "handle-request-shutdown",
++                          G_CALLBACK (gsm_manager_request_shutdown), manager);
+         g_signal_connect (skeleton, "handle-reboot",
+                           G_CALLBACK (gsm_manager_reboot), manager);
+         g_signal_connect (skeleton, "handle-suspend",
+--- a/gnome-session/org.gnome.SessionManager.xml
++++ b/gnome-session/org.gnome.SessionManager.xml
+@@ -426,6 +426,22 @@
+       <arg name="running" direction="out" type="b"/>
+     </method>
+ 
++    <method name="RequestShutdown">
++      <doc:doc>
++        <doc:description>
++          <doc:para>Request a shutdown with no dialog</doc:para>
++        </doc:description>
++      </doc:doc>
++    </method>
++
++    <method name="RequestReboot">
++      <doc:doc>
++        <doc:description>
++          <doc:para>Request a reboot with no dialog</doc:para>
++        </doc:description>
++      </doc:doc>
++    </method>
++
+     <!-- Signals -->
+ 
+     <!--
