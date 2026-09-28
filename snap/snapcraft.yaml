@@ -43,6 +43,7 @@ apps:
       - time-control
       - timeserver-control
       - timezone-control
+      - dot-hidden
       - shell-session-locale-files
       - systemd-user-control
 
@@ -66,6 +67,12 @@ apps:
     command: run.sh /usr/bin/nautilus --gapplication-service
     daemon: dbus
     daemon-scope: user
+    slots:
+      - dbus-freedesktop-filemanager1
+    plugs:
+      - home
+      - dot-local-share-nautilus
+      - dot-hidden
     activates-on:
       - dbus-gnome-nautilus
 
@@ -92,9 +99,11 @@ apps:
       - dbus-ibus-gtk3
 
   ibus-portal-service:
-    command: run.sh /usr/libexec/ibus-portal
+    command: run-ibus-portal.sh
     daemon: dbus
     daemon-scope: user
+    plugs:
+      - wayland-client
     activates-on:
       - dbus-ibus-portal
 
@@ -107,6 +116,8 @@ apps:
 
   dconf-service:
     command: run.sh /usr/libexec/dconf-service
+    slots:
+      - dbus-dconf
     plugs:
       - account-control
       - locale-control
@@ -125,6 +136,8 @@ apps:
       - systemd-user-control
   gcr-prompter:
     command: run.sh /usr/libexec/gcr-prompter
+    slots:
+      - dbus-gnome-keyring-private-prompter
     plugs:
       - account-control
       - locale-control
@@ -144,6 +157,8 @@ apps:
       - systemd-user-control
   glib-pacrunner:
     command: run.sh /usr/libexec/glib-pacrunner
+    slots:
+      - dbus-glib-pacrunner
     plugs:
       - account-control
       - locale-control
@@ -151,8 +166,11 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - network
   gnome-control-center:
     command: run.sh /usr/bin/gnome-control-center
+    slots:
+      - dbus-gnome-settings
     plugs:
       - account-control
       - locale-control
@@ -163,6 +181,8 @@ apps:
       - wayland-client
   gnome-control-center-global-shortcuts-provider:
     command: run.sh /usr/libexec/gnome-control-center-global-shortcuts-provider
+    slots:
+      - dbus-gnome-settings-global-shortcuts
     plugs:
       - account-control
       - locale-control
@@ -172,6 +192,8 @@ apps:
       - systemd-user-control
   gnome-control-center-search-provider:
     command: run.sh /usr/libexec/gnome-control-center-search-provider
+    slots:
+      - dbus-gnome-settings-search
     plugs:
       - account-control
       - locale-control
@@ -181,6 +203,8 @@ apps:
       - systemd-user-control
   gnome-extensions-app:
     command: run.sh /usr/bin/gnome-extensions-app
+    slots:
+      - dbus-gnome-extensions
     plugs:
       - account-control
       - locale-control
@@ -211,6 +235,9 @@ apps:
       - wayland-client
   gnome-keyring-daemon:
     command: run.sh /usr/bin/gnome-keyring-daemon
+    slots:
+      - dbus-freedesktop-secrets
+      - dbus-gnome-keyring
     plugs:
       - account-control
       - locale-control
@@ -253,6 +280,9 @@ apps:
     slots:
       - wayland
       - x11
+      - dbus-gnome-keyring-sysprompter
+      - dbus-ibus
+      - dbus-ibus-gtk3
     plugs:
       - account-control
       - locale-control
@@ -261,8 +291,14 @@ apps:
       - timezone-control
       - systemd-user-control
       - wayland-client
+      - network-manager
+      - login-session-control
+      - upower-observe
+      - bluez
   gnome-shell-calendar-server:
     command: run.sh /usr/libexec/gnome-shell-calendar-server
+    slots:
+      - dbus-gnome-shell-calendar-server
     plugs:
       - account-control
       - locale-control
@@ -272,6 +308,8 @@ apps:
       - systemd-user-control
   gnome-shell-extensions:
     command: run.sh /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.Shell.Extensions
+    slots:
+      - dbus-gnome-shell-extensions
     plugs:
       - account-control
       - locale-control
@@ -282,6 +320,8 @@ apps:
       - wayland-client
   gnome-shell-hotplug-sniffer:
     command: run.sh /usr/libexec/gnome-shell-hotplug-sniffer
+    slots:
+      - dbus-gnome-shell-hotplug-sniffer
     plugs:
       - account-control
       - locale-control
@@ -291,6 +331,8 @@ apps:
       - systemd-user-control
   gnome-shell-notifications:
     command: run.sh /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.Shell.Notifications
+    slots:
+      - dbus-gnome-shell-notifications
     plugs:
       - account-control
       - locale-control
@@ -301,6 +343,8 @@ apps:
       - wayland-client
   gnome-shell-screensaver:
     command: run.sh /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.ScreenSaver
+    slots:
+      - dbus-gnome-screensaver
     plugs:
       - account-control
       - locale-control
@@ -311,6 +355,8 @@ apps:
       - wayland-client
   goa-daemon:
     command: run.sh /usr/libexec/goa-daemon
+    slots:
+      - dbus-gnome-online-accounts
     plugs:
       - account-control
       - locale-control
@@ -318,8 +364,12 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - network
+      - network-manager
   goa-identity-service:
     command: run.sh /usr/libexec/goa-identity-service
+    slots:
+      - dbus-gnome-identity
     plugs:
       - account-control
       - locale-control
@@ -327,6 +377,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - network
   gpg-agent:
     command: run.sh /usr/bin/gpg-agent
     plugs:
@@ -406,6 +457,7 @@ apps:
       - timezone-control
       - systemd-user-control
       - wayland-client
+      - upower-observe
   gsd-print-notifications:
     command: run.sh /usr/libexec/gsd-print-notifications
     plugs:
@@ -426,6 +478,7 @@ apps:
       - timezone-control
       - systemd-user-control
       - wayland-client
+      - network-manager
   gsd-screensaver-proxy:
     command: run.sh /usr/libexec/gsd-screensaver-proxy
     plugs:
@@ -446,6 +499,7 @@ apps:
       - timezone-control
       - systemd-user-control
       - wayland-client
+      - network-manager
   gsd-smartcard:
     command: run.sh /usr/libexec/gsd-smartcard
     plugs:
@@ -498,6 +552,8 @@ apps:
       - wayland-client
   gvfs-afc-volume-monitor:
     command: run.sh /usr/libexec/gvfs-afc-volume-monitor
+    slots:
+      - dbus-gtk-vfs-afc-volume-monitor
     plugs:
       - account-control
       - locale-control
@@ -507,6 +563,8 @@ apps:
       - systemd-user-control
   gvfs-goa-volume-monitor:
     command: run.sh /usr/libexec/gvfs-goa-volume-monitor
+    slots:
+      - dbus-gtk-vfs-goa-volume-monitor
     plugs:
       - account-control
       - locale-control
@@ -516,6 +574,8 @@ apps:
       - systemd-user-control
   gvfs-gphoto2-volume-monitor:
     command: run.sh /usr/libexec/gvfs-gphoto2-volume-monitor
+    slots:
+      - dbus-gtk-vfs-gphoto2-volume-monitor
     plugs:
       - account-control
       - locale-control
@@ -525,15 +585,8 @@ apps:
       - systemd-user-control
   gvfs-mtp-volume-monitor:
     command: run.sh /usr/libexec/gvfs-mtp-volume-monitor
-    plugs:
-      - account-control
-      - locale-control
-      - time-control
-      - timeserver-control
-      - timezone-control
-      - systemd-user-control
-  gvfs-udisks2-volume-monitor:
-    command: run.sh /usr/libexec/gvfs-udisks2-volume-monitor
+    slots:
+      - dbus-gtk-vfs-mtp-volume-monitor
     plugs:
       - account-control
       - locale-control
@@ -543,6 +596,9 @@ apps:
       - systemd-user-control
   gvfsd:
     command: run.sh /usr/libexec/gvfsd
+    slots:
+      - dbus-gtk-vfs-daemon
+      - dbus-gtk-vfs-mountpoint
     plugs:
       - account-control
       - locale-control
@@ -550,8 +606,12 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - home
+      - dot-hidden
   gvfsd-metadata:
     command: run.sh /usr/libexec/gvfsd-metadata
+    slots:
+      - dbus-gtk-vfs-metadata
     plugs:
       - account-control
       - locale-control
@@ -559,6 +619,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - dot-local-share-gvfs-metadata
   keyboxd:
     command: run.sh /usr/lib/gnupg/keyboxd
     plugs:
@@ -570,6 +631,9 @@ apps:
       - systemd-user-control
   localsearch-3:
     command: run.sh /usr/libexec/localsearch-3
+    slots:
+      - dbus-localsearch3
+      - dbus-tracker3-miner-files
     plugs:
       - account-control
       - locale-control
@@ -577,8 +641,13 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - home
+      - upower-observe
   localsearch-control-3:
     command: run.sh /usr/libexec/localsearch-control-3
+    slots:
+      - dbus-localsearch3-control
+      - dbus-tracker3-miner-files-control
     plugs:
       - account-control
       - locale-control
@@ -588,6 +657,9 @@ apps:
       - systemd-user-control
   localsearch-writeback-3:
     command: run.sh /usr/libexec/localsearch-writeback-3
+    slots:
+      - dbus-localsearch3-writeback
+      - dbus-tracker3-writeback
     plugs:
       - account-control
       - locale-control
@@ -595,6 +667,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - home
   spice-vdagent:
     command: run.sh /usr/bin/spice-vdagent
     plugs:
@@ -616,6 +689,8 @@ apps:
       - systemd-user-control
   tinysparql-xdg-portal-3:
     command: run.sh /usr/libexec/tinysparql-xdg-portal-3
+    slots:
+      - dbus-freedesktop-portal-tracker
     plugs:
       - account-control
       - locale-control
@@ -632,6 +707,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - home
   xdg-desktop-portal:
     command: run.sh /usr/libexec/xdg-desktop-portal
     plugs:
@@ -650,6 +726,7 @@ apps:
     restart-delay: 1s
     plugs:
       - account-control
+      - home
       - locale-control
       - time-control
       - timeserver-control
@@ -688,21 +765,15 @@ apps:
       XDG_RUNTIME_DIR: /run/user/$SNAP_UID
     plugs:
       - account-control
+      # The portal daemon opens user-selected files for its FUSE mount;
+      # requesting apps still see only the documents granted to them.
+      - home
       - locale-control
       - time-control
       - timeserver-control
       - timezone-control
       - systemd-user-control
       - fuse-device
-  xdg-permission-store:
-    command: run.sh /usr/libexec/xdg-permission-store
-    plugs:
-      - account-control
-      - locale-control
-      - time-control
-      - timeserver-control
-      - timezone-control
-      - systemd-user-control
   xdg-user-dirs-gtk-update:
     command: run.sh /usr/bin/xdg-user-dirs-gtk-update
     plugs:
@@ -713,6 +784,7 @@ apps:
       - timezone-control
       - systemd-user-control
       - wayland-client
+      - home
   xdg-user-dirs-update:
     command: run.sh /usr/bin/xdg-user-dirs-update
     plugs:
@@ -722,6 +794,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - home
 
 plugs:
   session-environment-broker-client:
@@ -739,6 +812,10 @@ plugs:
     interface: personal-files
     write:
       - $HOME/.local/share/nautilus
+  dot-local-share-gvfs-metadata:
+    interface: personal-files
+    write:
+      - $HOME/.local/share/gvfs-metadata
   dot-hidden:
     interface: personal-files
     write:
@@ -805,6 +882,110 @@ slots:
     interface: dbus
     bus: session
     name: org.freedesktop.impl.portal.desktop.gtk
+  dbus-gtk-vfs-daemon:
+    interface: dbus
+    bus: session
+    name: org.gtk.vfs.Daemon
+  dbus-gtk-vfs-mountpoint:
+    interface: dbus
+    bus: session
+    name: org.gtk.vfs.mountpoint
+  dbus-gtk-vfs-afc-volume-monitor:
+    interface: dbus
+    bus: session
+    name: org.gtk.vfs.AfcVolumeMonitor
+  dbus-gtk-vfs-goa-volume-monitor:
+    interface: dbus
+    bus: session
+    name: org.gtk.vfs.GoaVolumeMonitor
+  dbus-gtk-vfs-gphoto2-volume-monitor:
+    interface: dbus
+    bus: session
+    name: org.gtk.vfs.GPhoto2VolumeMonitor
+  dbus-gtk-vfs-mtp-volume-monitor:
+    interface: dbus
+    bus: session
+    name: org.gtk.vfs.MTPVolumeMonitor
+  dbus-gtk-vfs-metadata:
+    interface: dbus
+    bus: session
+    name: org.gtk.vfs.Metadata
+  dbus-dconf:
+    interface: dbus
+    bus: session
+    name: ca.desrt.dconf
+  dbus-glib-pacrunner:
+    interface: dbus
+    bus: session
+    name: org.gtk.GLib.PACRunner
+  dbus-gnome-online-accounts:
+    interface: dbus
+    bus: session
+    name: org.gnome.OnlineAccounts
+  dbus-gnome-identity:
+    interface: dbus
+    bus: session
+    name: org.gnome.Identity
+  dbus-localsearch3:
+    interface: dbus
+    bus: session
+    name: org.freedesktop.LocalSearch3
+  dbus-tracker3-miner-files:
+    interface: dbus
+    bus: session
+    name: org.freedesktop.Tracker3.Miner.Files
+  dbus-localsearch3-control:
+    interface: dbus
+    bus: session
+    name: org.freedesktop.LocalSearch3.Control
+  dbus-tracker3-miner-files-control:
+    interface: dbus
+    bus: session
+    name: org.freedesktop.Tracker3.Miner.Files.Control
+  dbus-localsearch3-writeback:
+    interface: dbus
+    bus: session
+    name: org.freedesktop.LocalSearch3.Writeback
+  dbus-tracker3-writeback:
+    interface: dbus
+    bus: session
+    name: org.freedesktop.Tracker3.Writeback
+  dbus-freedesktop-portal-tracker:
+    interface: dbus
+    bus: session
+    name: org.freedesktop.portal.Tracker
+  dbus-gnome-keyring-private-prompter:
+    interface: dbus
+    bus: session
+    name: org.gnome.keyring.PrivatePrompter
+  dbus-gnome-settings-search:
+    interface: dbus
+    bus: session
+    name: org.gnome.Settings.SearchProvider
+  dbus-gnome-settings-global-shortcuts:
+    interface: dbus
+    bus: session
+    name: org.gnome.Settings.GlobalShortcutsProvider
+  dbus-gnome-extensions:
+    interface: dbus
+    bus: session
+    name: org.gnome.Extensions
+  dbus-gnome-shell-calendar-server:
+    interface: dbus
+    bus: session
+    name: org.gnome.Shell.CalendarServer
+  dbus-gnome-shell-extensions:
+    interface: dbus
+    bus: session
+    name: org.gnome.Shell.Extensions
+  dbus-gnome-shell-hotplug-sniffer:
+    interface: dbus
+    bus: session
+    name: org.gnome.Shell.HotplugSniffer
+  dbus-gnome-shell-notifications:
+    interface: dbus
+    bus: session
+    name: org.gnome.Shell.Notifications
   dbus-freedesktop-screensaver:
     interface: dbus
     bus: session
@@ -941,6 +1122,10 @@ slots:
     interface: dbus
     bus: session
     name: org.gnome.Nautilus
+  dbus-freedesktop-filemanager1:
+    interface: dbus
+    bus: session
+    name: org.freedesktop.FileManager1
   dbus-gnome-shell:
     interface: dbus
     bus: session
@@ -1001,10 +1186,6 @@ slots:
     interface: dbus
     bus: session
     name: com.rastersoft.dingextension
-  dbus-portal:
-    interface: dbus
-    name: org.freedesktop.impl.portal.PermissionStore
-    bus: session
   dbus-ibus:
     interface: dbus
     name: org.freedesktop.IBus
