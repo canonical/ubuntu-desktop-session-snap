@@ -45,6 +45,7 @@ apps:
       - timezone-control
       - dot-hidden
       - shell-session-locale-files
+      - user-dirs-defaults
       - systemd-user-control
 
   gnome-terminal-server:
@@ -826,6 +827,7 @@ apps:
   xdg-user-dirs-gtk-update:
     command: run.sh /usr/bin/xdg-user-dirs-gtk-update
     plugs:
+      - user-dirs-defaults
       - account-control
       - locale-control
       - time-control
@@ -837,6 +839,7 @@ apps:
   xdg-user-dirs-update:
     command: run.sh /usr/bin/xdg-user-dirs-update
     plugs:
+      - user-dirs-defaults
       - account-control
       - locale-control
       - time-control
@@ -933,6 +936,11 @@ plugs:
       - /etc/default/im-config
       - /etc/X11/xinit/xinputrc
       - /etc/default/locale
+  user-dirs-defaults:
+    interface: system-files
+    read:
+      - /etc/xdg/user-dirs.conf
+      - /etc/xdg/user-dirs.defaults
   upower-observe: null
 
 slots:
