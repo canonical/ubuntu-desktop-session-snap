@@ -603,6 +603,18 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+  gvfs-udisks2-volume-monitor:
+    command: run.sh /usr/libexec/gvfs-udisks2-volume-monitor
+    slots:
+      - dbus-gtk-vfs-udisks2-volume-monitor
+    plugs:
+      - account-control
+      - locale-control
+      - time-control
+      - timeserver-control
+      - timezone-control
+      - systemd-user-control
+      - udisks2
   gvfsd:
     command: run.sh /usr/libexec/gvfsd
     slots:
@@ -941,6 +953,7 @@ plugs:
     read:
       - /etc/xdg/user-dirs.conf
       - /etc/xdg/user-dirs.defaults
+  udisks2: null
   upower-observe: null
 
 slots:
@@ -1007,6 +1020,10 @@ slots:
     interface: dbus
     bus: session
     name: org.gtk.vfs.MTPVolumeMonitor
+  dbus-gtk-vfs-udisks2-volume-monitor:
+    interface: dbus
+    bus: session
+    name: org.gtk.vfs.UDisks2VolumeMonitor
   dbus-gtk-vfs-metadata:
     interface: dbus
     bus: session
