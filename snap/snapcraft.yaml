@@ -6,12 +6,11 @@ description: |
 
 grade: stable
 confinement: strict
-base: core26-desktop
-build-base: core26
+base: core26
 platforms:
-  all:
-    build-on: amd64
-    build-for: all
+  amd64:
+    build-on: [amd64]
+    build-for: [amd64]
 
 environment:
   HOME: $SNAP_REAL_HOME
@@ -19,6 +18,20 @@ environment:
   XDG_CONFIG_HOME: $SNAP_USER_COMMON/.config
   XDG_DATA_HOME: $SNAP_USER_COMMON/.local/share
   XDG_STATE_HOME: $SNAP_USER_COMMON/.local/state
+  PATH: "$SNAP/gnome/usr/bin:$SNAP/gnome/usr/sbin:$SNAP/gnome/bin:$SNAP/gnome/usr/libexec:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/glib-2.0:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  LD_LIBRARY_PATH: "$SNAP/gnome/usr/lib/gnome-shell:$SNAP/gnome/usr/lib/gnome-settings-daemon-50:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libunity:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/mutter-18:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/samba:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/pulseaudio:$SNAP/gnome/usr/lib:$SNAP/gnome/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/gnome/lib:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/usr/lib:$SNAP/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/lib:/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:/usr/lib:/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:/lib"
+  GBM_BACKENDS_PATH: "$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/gbm"
+  LIBGL_DRIVERS_PATH: "$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/dri"
+  __EGL_VENDOR_LIBRARY_DIRS: "$SNAP/gnome/usr/share/glvnd/egl_vendor.d:$SNAP/gnome/etc/glvnd/egl_vendor.d"
+  XKB_CONFIG_ROOT: "$SNAP/gnome/usr/share/X11/xkb"
+  XCURSOR_PATH: "$SNAP/gnome/usr/share/icons:$SNAP/gnome/usr/share/pixmaps"
+  LIBINPUT_QUIRKS_DIR: "$SNAP/gnome/usr/share/libinput"
+  GI_TYPELIB_PATH: "$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/gjs/girepository-1.0:$SNAP/gnome/usr/lib/gnome-shell:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/mutter-18:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/girepository-1.0:$SNAP/gnome/usr/lib/girepository-1.0:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/girepository-1.0:/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/girepository-1.0"
+  GNOME_SHELL_DATADIR: "$SNAP/gnome/usr/share/gnome-shell"
+  LIBGWEATHER_LOCATIONS_PATH: "$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libgweather-4/Locations.bin"
+  GSETTINGS_SCHEMA_DIR: "$SNAP/gnome/usr/share/glib-2.0/schemas"
+  XDG_DATA_DIRS: "$SNAP/gnome/usr/share:$SNAP/usr/share:/var/lib/snapd/desktop"
+  XDG_CONFIG_DIRS: "$SNAP/gnome/etc/xdg:$SNAP/gnome/usr/etc/xdg:/etc/xdg"
 
 # Redirects /usr/bin/fusermount3 (present in the core26-desktop base) to
 # our own shim, which talks to the privileged xdg-fuse-broker instead of
@@ -27,6 +40,8 @@ environment:
 # app), but xdg-document-portal is the only app in this snap that invokes
 # FUSE/fusermount3, so this redirect is safe for the whole snap.
 layout:
+  /usr/share/backgrounds:
+    bind: $SNAP/gnome/usr/share/backgrounds
   /usr/bin/fusermount3:
     bind-file: $SNAP/usr/libexec/ubuntu-desktop-session/fusermount3
 
@@ -55,6 +70,8 @@ apps:
     activates-on:
       - dbus-gnome-terminal
     plugs:
+      - home
+      - shell-startup-files
       - wayland-client
 
   screencast-service:
@@ -861,6 +878,10 @@ apps:
       - home
 
 plugs:
+  gnome-desktop-content:
+    content: gnome-desktop-content
+    interface: content
+    target: $SNAP/gnome
   session-environment-broker-client:
     interface: session-environment-broker
   dbus-portal-desktop:
@@ -934,6 +955,17 @@ plugs:
     write:
       - $HOME/.pam_environment
       - $HOME/.xinputrc
+  shell-startup-files:
+    interface: personal-files
+    read:
+      - $HOME/.bashrc
+      - $HOME/.bash_login
+      - $HOME/.bash_profile
+      - $HOME/.bash_logout
+      - $HOME/.inputrc
+      - $HOME/.profile
+    write:
+      - $HOME/.bash_history
   shell-config-files:
     interface: system-files
     read:
@@ -1353,7 +1385,11 @@ parts:
         -Dman=false \
         -Dmimeapps=false \
         -Dsystemduserunitdir=/usr/lib/systemd/user
-      meson compile -C build gnome-session-service
+      meson compile -C build gnome-session gnome-session-init-worker gnome-session-service
+      install -D -m 0755 build/gnome-session/gnome-session \
+        "${CRAFT_PART_INSTALL}/usr/bin/gnome-session"
+      install -D -m 0755 build/gnome-session/gnome-session-init-worker \
+        "${CRAFT_PART_INSTALL}/usr/libexec/ubuntu-desktop-session/gnome-session-init-worker"
       install -D -m 0755 build/gnome-session/gnome-session-service \
         "${CRAFT_PART_INSTALL}/usr/libexec/ubuntu-desktop-session/gnome-session-service"
   environment-broker:

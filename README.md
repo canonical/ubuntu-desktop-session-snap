@@ -2,6 +2,30 @@
 
 Provides a strictly confined desktop session for Ubuntu Core Desktop
 
+## GNOME content interface
+
+The snap uses the stock `core26` base. GNOME binaries, libraries,
+typelibs, schemas, data files, and D-Bus service files are supplied by
+the `gnome-desktop-content` snap, mounted at `$SNAP/gnome`. The session
+environment and `run.sh` resolve executable and runtime paths through
+that mount; host service activation continues to enter through the
+session snap's declared apps.
+
+`gdk-pixbuf-env.sh` builds revision-specific image-loader data in
+`SNAP_USER_COMMON`. Glycin starts loaders with a sanitized environment,
+so generated wrappers restore the session's content-library path before
+executing the provider's loader binaries.
+
+The GNOME Shell screencast service is launched from GJS modules stored in
+a GResource bundle. `screencast-env.sh` extracts those modules into
+`SNAP_USER_COMMON` because the bundled launcher expects a filesystem
+`main.js`.
+
+The GNOME Terminal server has the `home` plug for normal user files and a
+narrow `personal-files` permission for Bash startup files and history,
+allowing interactive shells to access their working directory, load the
+user's Bash configuration, and persist command history.
+
 ## Session environment broker
 
 `gnome-session-service` forwards Mutter's `Setenv` updates through the

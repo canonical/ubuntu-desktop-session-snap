@@ -312,3 +312,37 @@
                  g_clear_error (&error);
          }
  }
+--- a/gnome-session/leader-main.c
++++ b/gnome-session/leader-main.c
+@@ -29,7 +29,20 @@
+ #include "gsm-util.h"
+-
++
+ #define INIT_WORKER_PATH (LIBEXECDIR "/gnome-session-init-worker")
+-
++
++static char *
++get_init_worker_path (void)
++{
++        const char *snap = g_getenv ("SNAP");
++
++        if (snap == NULL)
++                return g_strdup (INIT_WORKER_PATH);
++
++        return g_build_filename (snap, "usr", "libexec",
++                                 "ubuntu-desktop-session",
++                                 "gnome-session-init-worker", NULL);
++}
++
+ static char *
+ shell_to_login_shell (const char *shell)
+ {
+@@ -255,7 +268,8 @@
+          * we've factored out the systemd-specific code into a separate init-worker binary. */
+-        if (execl(INIT_WORKER_PATH, INIT_WORKER_PATH, session_name, NULL) < 0)
++        g_autofree char *init_worker_path = get_init_worker_path ();
++        if (execl (init_worker_path, init_worker_path, session_name, NULL) < 0)
+             g_error ("Failed to exec gnome-session-init-worker: %m");
+-
++
+         g_assert_not_reached ();
