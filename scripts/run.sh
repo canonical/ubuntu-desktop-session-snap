@@ -42,4 +42,8 @@ case "$WAYLAND_DISPLAY" in
 	*) export WAYLAND_DISPLAY="/run/user/`id -u`/$WAYLAND_DISPLAY" ;;
 esac
 
+if [ "$1" = "$SNAP/gnome/usr/libexec/xdg-desktop-portal-gnome" ]; then
+	"$SNAP/gnome/usr/bin/gjs-console" "$SNAP/wait-for-mutter-service-channel.js" || exit 1
+fi
+
 exec "$@"

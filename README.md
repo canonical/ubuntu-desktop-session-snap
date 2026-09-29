@@ -21,6 +21,13 @@ a GResource bundle. `screencast-env.sh` extracts those modules into
 `SNAP_USER_COMMON` because the bundled launcher expects a filesystem
 `main.js`.
 
+The GNOME portal backend connects to the session's restricted Shell
+screenshot D-Bus interface so portal screenshot requests can be served.
+GNOME Shell has a path-scoped `personal-files` plug for creating screenshot
+images in the user's Pictures directory. The backend waits for Mutter's
+Wayland service channel before starting so it does not initialize in a
+settings-only mode during session startup.
+
 The GNOME Terminal server has the `home` plug for normal user files and a
 narrow `personal-files` permission for Bash startup files and history,
 allowing interactive shells to access their working directory, load the

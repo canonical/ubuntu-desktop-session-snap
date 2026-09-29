@@ -105,6 +105,7 @@ apps:
     restart-delay: 1s
     plugs:
       - dbus-portal-desktop
+      - dbus-gnome-shell-screenshot-client
 
   ibus-service:
     command: run.sh /usr/bin/ibus-daemon --panel disable
@@ -304,6 +305,7 @@ apps:
       - desktop
       - wayland
       - x11
+      - dbus-gnome-shell-screenshot
       - dbus-gnome-keyring-sysprompter
       - dbus-ibus
       - dbus-ibus-gtk3
@@ -315,6 +317,7 @@ apps:
       - timezone-control
       - systemd-user-control
       - wayland-client
+      - pictures-directory
       - network-manager
       - login-session-control
       - upower-observe
@@ -912,6 +915,14 @@ plugs:
     interface: dbus
     bus: session
     name: org.freedesktop.impl.portal.Secret
+  dbus-gnome-shell-screenshot-client:
+    interface: dbus
+    bus: session
+    name: org.gnome.Shell.Screenshot
+  pictures-directory:
+    interface: personal-files
+    write:
+      - $HOME/Pictures
   wayland-client:
     interface: wayland
   avahi-control: null
