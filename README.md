@@ -28,6 +28,18 @@ images in the user's Pictures directory. The backend waits for Mutter's
 Wayland service channel before starting so it does not initialize in a
 settings-only mode during session startup.
 
+The GNOME portal backend connects to Mutter's ScreenCast D-Bus interface to
+create PipeWire-backed screen-capture sessions. The Mutter ScreenCast slot is
+provided by GNOME Shell and connected to the backend's client plug at image
+seed time. The separate Shell screencast service remains available for its
+GJS-based recording API.
+
+GNOME Shell, the portal frontend and backend, and the Shell screencast
+service connect to the `gnome-desktop-content` snap's PipeWire slot and use
+its private runtime directory for screen recording. The session snap exposes
+the content snap's PipeWire and SPA modules through layouts so the confined
+clients can load the required plugins.
+
 The GNOME Terminal server has the `home` plug for normal user files and a
 narrow `personal-files` permission for Bash startup files and history,
 allowing interactive shells to access their working directory, load the

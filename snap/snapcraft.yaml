@@ -42,6 +42,12 @@ environment:
 layout:
   /usr/share/backgrounds:
     bind: $SNAP/gnome/usr/share/backgrounds
+  /usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/pipewire-0.3:
+    symlink: $SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/pipewire-0.3
+  /usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/spa-0.2:
+    symlink: $SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/spa-0.2
+  /usr/share/pipewire:
+    symlink: $SNAP/gnome/usr/share/pipewire
   /usr/bin/fusermount3:
     bind-file: $SNAP/usr/libexec/ubuntu-desktop-session/fusermount3
 
@@ -78,8 +84,14 @@ apps:
     command: run.sh /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.Shell.Screencast
     daemon: dbus
     daemon-scope: user
+    slots:
+      - dbus-gnome-shell-screencast
+    environment:
+      PIPEWIRE_RUNTIME_DIR: /run/user/$SNAP_UID/snap.gnome-desktop-content
     activates-on:
       - dbus-gnome-shell-screencast
+    plugs:
+      - pipewire
 
   nautilus-service:
     command: run.sh /usr/bin/nautilus --gapplication-service
@@ -103,9 +115,14 @@ apps:
     activates-on:
       - dbus-freedesktop-impl-portal-gnome
     restart-delay: 1s
+    environment:
+      PIPEWIRE_RUNTIME_DIR: /run/user/$SNAP_UID/snap.gnome-desktop-content
     plugs:
       - dbus-portal-desktop
+      - dbus-gnome-shell-screencast-client
       - dbus-gnome-shell-screenshot-client
+      - dbus-gnome-mutter-screencast-client
+      - pipewire
 
   ibus-service:
     command: run.sh /usr/bin/ibus-daemon --panel disable
@@ -306,6 +323,7 @@ apps:
       - wayland
       - x11
       - dbus-gnome-shell-screenshot
+      - dbus-gnome-mutter-screencast
       - dbus-gnome-keyring-sysprompter
       - dbus-ibus
       - dbus-ibus-gtk3
@@ -324,6 +342,9 @@ apps:
       - bluez
       - dbus-portal-desktop
       - dbus-portal-permission-store
+      - pipewire
+    environment:
+      PIPEWIRE_RUNTIME_DIR: /run/user/$SNAP_UID/snap.gnome-desktop-content
   gnome-shell-calendar-server:
     command: run.sh /usr/libexec/gnome-shell-calendar-server
     slots:
@@ -768,6 +789,7 @@ apps:
       - timezone-control
       - systemd-user-control
       - network-manager
+      - pipewire
       # The frontend must open chooser-selected paths to register document grants.
       - home
       - dbus-portal-impl-gnome
@@ -776,6 +798,8 @@ apps:
       - dbus-portal-tracker
       - dbus-portal-permission-store
       - dbus-portal-secret
+    environment:
+      PIPEWIRE_RUNTIME_DIR: /run/user/$SNAP_UID/snap.gnome-desktop-content
   xdg-permission-store:
     command: run.sh /usr/libexec/xdg-permission-store
     daemon: dbus
@@ -919,6 +943,14 @@ plugs:
     interface: dbus
     bus: session
     name: org.gnome.Shell.Screenshot
+  dbus-gnome-shell-screencast-client:
+    interface: dbus
+    bus: session
+    name: org.gnome.Shell.Screencast
+  dbus-gnome-mutter-screencast-client:
+    interface: dbus
+    bus: session
+    name: org.gnome.Mutter.ScreenCast
   pictures-directory:
     interface: personal-files
     write:
@@ -955,7 +987,6 @@ plugs:
   network-observe: null
   network-manager: null
   opengl: null
-  #pipewire: null
   polkit-agent: null
   process-control: null
   shutdown: null
