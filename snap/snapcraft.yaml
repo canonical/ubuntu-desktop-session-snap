@@ -19,7 +19,7 @@ environment:
   XDG_DATA_HOME: $SNAP_USER_COMMON/.local/share
   XDG_STATE_HOME: $SNAP_USER_COMMON/.local/state
   PATH: "$SNAP/gnome/usr/bin:$SNAP/gnome/usr/sbin:$SNAP/gnome/bin:$SNAP/gnome/usr/libexec:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/glib-2.0:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-  LD_LIBRARY_PATH: "$SNAP/gnome/usr/lib/gnome-shell:$SNAP/gnome/usr/lib/gnome-settings-daemon-50:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libunity:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/mutter-18:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/samba:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/pulseaudio:$SNAP/gnome/usr/lib:$SNAP/gnome/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/gnome/lib:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/usr/lib:$SNAP/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/lib:/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:/usr/lib:/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:/lib"
+  LD_LIBRARY_PATH: "$SNAP/gnome/usr/lib/gnome-shell:$SNAP/gnome/usr/lib/gnome-settings-daemon-50:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libunity:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/mutter-18:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/gvfs:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/samba:$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/pulseaudio:$SNAP/gnome/usr/lib:$SNAP/gnome/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/gnome/lib:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/usr/lib:$SNAP/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/lib:/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:/usr/lib:/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:/lib"
   GBM_BACKENDS_PATH: "$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/gbm"
   LIBGL_DRIVERS_PATH: "$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/dri"
   __EGL_VENDOR_LIBRARY_DIRS: "$SNAP/gnome/usr/share/glvnd/egl_vendor.d:$SNAP/gnome/etc/glvnd/egl_vendor.d"
@@ -40,8 +40,24 @@ environment:
 # app), but xdg-document-portal is the only app in this snap that invokes
 # FUSE/fusermount3, so this redirect is safe for the whole snap.
 layout:
+  # Resolve dynamically allocated GDM users through systemd NSS.
+  /etc/nsswitch.conf:
+    bind-file: $SNAP/etc/nsswitch.conf
+  # Expose GNOME data files addressed by absolute paths in the confined session.
+  /usr/share/gnome-shell:
+    bind: $SNAP/gnome/usr/share/gnome-shell
+  /usr/share/gdm/greeter:
+    bind: $SNAP/gnome/usr/share/gdm/greeter
+  /usr/share/xml/iso-codes:
+    bind: $SNAP/gnome/usr/share/xml/iso-codes
   /usr/share/pixmaps/ubuntu-logo-text-dark.svg:
     bind-file: $SNAP/usr/share/pixmaps/ubuntu-logo-text-dark.svg
+  # TinySPARQL hard-codes this module directory; expose its content-snap
+  # copy at the expected path inside the confined session mount namespace.
+  /usr/lib/x86_64-linux-gnu/tinysparql-3.0:
+    bind: $SNAP/gnome/usr/lib/x86_64-linux-gnu/tinysparql-3.0
+  /usr/share/localsearch3:
+    bind: $SNAP/gnome/usr/share/localsearch3
   /usr/share/backgrounds:
     bind: $SNAP/gnome/usr/share/backgrounds
   /usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/pipewire-0.3:
@@ -349,6 +365,7 @@ apps:
       - pipewire
     environment:
       PIPEWIRE_RUNTIME_DIR: /run/user/$SNAP_UID/snap.gnome-desktop-content
+      XDG_DATA_DIRS: "$SNAP/gnome/usr/share/gdm/greeter:$SNAP/gnome/usr/share:$SNAP/usr/share:/usr/local/share:/usr/share:/var/lib/snapd/desktop"
   gnome-shell-calendar-server:
     command: run.sh /usr/libexec/gnome-shell-calendar-server
     slots:
