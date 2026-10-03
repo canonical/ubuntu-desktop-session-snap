@@ -40,6 +40,8 @@ environment:
 # app), but xdg-document-portal is the only app in this snap that invokes
 # FUSE/fusermount3, so this redirect is safe for the whole snap.
 layout:
+  /usr/share/pixmaps/ubuntu-logo-text-dark.svg:
+    bind-file: $SNAP/usr/share/pixmaps/ubuntu-logo-text-dark.svg
   /usr/share/backgrounds:
     bind: $SNAP/gnome/usr/share/backgrounds
   /usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/pipewire-0.3:
@@ -67,6 +69,7 @@ apps:
       - dot-hidden
       - shell-session-locale-files
       - user-dirs-defaults
+      - gnome-content-launch
       - systemd-user-control
 
   gnome-terminal-server:
@@ -338,6 +341,7 @@ apps:
       - pictures-directory
       - network-manager
       - login-session-control
+      - gdm-session-control
       - upower-observe
       - bluez
       - dbus-portal-desktop
@@ -1027,6 +1031,12 @@ plugs:
     read:
       - /etc/xdg/user-dirs.conf
       - /etc/xdg/user-dirs.defaults
+  gnome-content-launch:
+    interface: system-files
+    read:
+      - /usr/libexec/gnome-content-launch
+  gdm-session-control:
+    interface: gdm-session-control
   udisks2: null
   upower-observe: null
 
@@ -1465,3 +1475,9 @@ parts:
     override-build: |
       cd $CRAFT_PROJECT_DIR
       craftctl set version=$(date +%Y%m%d)+git$(git rev-parse --short HEAD)
+  ubuntu-login-logo:
+    plugin: nil
+    stage-packages:
+      - base-files
+    stage:
+      - usr/share/pixmaps/ubuntu-logo-text-dark.svg
