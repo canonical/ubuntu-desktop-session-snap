@@ -519,6 +519,7 @@ apps:
   gsd-media-keys:
     command: run.sh /usr/libexec/gsd-media-keys
     plugs:
+      - upower-observe
       - account-control
       - locale-control
       - time-control
