@@ -1015,13 +1015,20 @@ plugs:
       - $HOME/Pictures
   wayland-client:
     interface: wayland
-  avahi-control: null
-  audio-playback: null
-  audio-record: null
-  bluez: null
-  bluetooth-control: null
-  cups-control: null
-  desktop-launch: null
+  avahi-control:
+    interface: avahi-control
+  audio-playback:
+    interface: audio-playback
+  audio-record:
+    interface: audio-record
+  bluez:
+    interface: bluez
+  bluetooth-control:
+    interface: bluetooth-control
+  cups-control:
+    interface: cups-control
+  desktop-launch:
+    interface: desktop-launch
   dot-local-share-nautilus:
     interface: personal-files
     write:
@@ -1034,22 +1041,38 @@ plugs:
     interface: personal-files
     write:
       - $HOME/.hidden
-  hardware-observe: null
-  hostname-control: null
-  home: null
-  login-session-observe: null
-  login-session-control: null
-  mount-observe: null
-  network-bind: null
-  network-control: null
-  network-observe: null
-  network-manager: null
-  opengl: null
-  polkit-agent: null
-  process-control: null
-  shutdown: null
-  ssh-keys: null
-  system-observe: null
+  hardware-observe:
+    interface: hardware-observe
+  hostname-control:
+    interface: hostname-control
+  home:
+    interface: home
+  login-session-observe:
+    interface: login-session-observe
+  login-session-control:
+    interface: login-session-control
+  mount-observe:
+    interface: mount-observe
+  network-bind:
+    interface: network-bind
+  network-control:
+    interface: network-control
+  network-observe:
+    interface: network-observe
+  network-manager:
+    interface: network-manager
+  opengl:
+    interface: opengl
+  polkit-agent:
+    interface: polkit-agent
+  process-control:
+    interface: process-control
+  shutdown:
+    interface: shutdown
+  ssh-keys:
+    interface: ssh-keys
+  system-observe:
+    interface: system-observe
   shell-session-locale-files:
     interface: personal-files
     write:
@@ -1091,11 +1114,14 @@ plugs:
       - /usr/libexec/gnome-content-launch
   gdm-session-control:
     interface: gdm-session-control
-  udisks2: null
-  upower-observe: null
+  udisks2:
+    interface: udisks2
+  upower-observe:
+    interface: upower-observe
 
 slots:
-  desktop: null
+  desktop:
+    interface: desktop
   session-environment-broker-api:
     interface: session-environment-broker
   dbus-session-environment-broker:
