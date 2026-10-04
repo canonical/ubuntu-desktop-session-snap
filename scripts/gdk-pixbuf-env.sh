@@ -18,7 +18,18 @@ loader_module_dir="$SNAP/gnome/usr/lib/$triplet/gdk-pixbuf-2.0/2.10.0/loaders"
 loader_query="$SNAP/gnome/usr/lib/$triplet/gdk-pixbuf-2.0/gdk-pixbuf-query-loaders"
 loader_cache="$SNAP_USER_COMMON/gdk-pixbuf-loaders-${SNAP_REVISION:-current}.cache"
 stamp_file="$data_dir/content-stamp"
-lock_dir="$SNAP_USER_COMMON/desktop-content-data-${SNAP_REVISION:-current}.lock"
+# The lock lives in the per-boot runtime directory, not under
+# SNAP_USER_COMMON: the user's snap directories can be (re)created by
+# snapd while the first session is starting up, which can make two
+# concurrent invocations each see their own freshly-created lock
+# directory and both proceed as the winner. The runtime directory is a
+# per-boot tmpfs that nothing replaces mid-login, and stale locks
+# cannot survive a reboot.
+if [ -n "${XDG_RUNTIME_DIR:-}" ]; then
+  lock_dir="$XDG_RUNTIME_DIR/desktop-content-data.lock"
+else
+  lock_dir="$SNAP_USER_COMMON/desktop-content-data-${SNAP_REVISION:-current}.lock"
+fi
 
 if [ -z "${LD_LIBRARY_PATH:-}" ]; then
   echo "LD_LIBRARY_PATH is unset; cannot configure content-snap Glycin loaders" >&2
@@ -52,34 +63,16 @@ content_assets_ready() {
 
 if ! content_assets_ready; then
   if mkdir "$lock_dir" 2>/dev/null; then
-    if ! mkdir -p "$mime_dir" "$glycin_config_dir" "$glycin_wrapper_dir"; then
+    if ! mkdir -p "$data_share" "$glycin_config_dir" "$glycin_wrapper_dir"; then
       rmdir "$lock_dir" 2>/dev/null
       echo "Failed to create content-snap image data directories" >&2
       return 1
     fi
 
-    if [ "$(readlink "$mime_dir/packages")" = "$mime_packages" ]; then
-      # Already linked (possibly left dangling by a concurrent invocation
-      # while the content mount was still settling, or linked by a
-      # concurrent run that won this lock first): nothing to do.
-      :
-    elif [ -e "$mime_dir/packages" ] || [ -L "$mime_dir/packages" ]; then
-      if ! rm -f "$mime_dir/packages" ||
-         ! ln -s "$mime_packages" "$mime_dir/packages"; then
-        rmdir "$lock_dir" 2>/dev/null
-        echo "Failed to update content-snap MIME package link" >&2
-        return 1
-      fi
-    elif ! ln -s "$mime_packages" "$mime_dir/packages"; then
-      # A concurrent invocation may have created the link between the
-      # existence checks above and this ln; that is benign as long as it
-      # points at this content snap's packages directory.
-      if [ "$(readlink "$mime_dir/packages")" != "$mime_packages" ]; then
-        rmdir "$lock_dir" 2>/dev/null
-        echo "Failed to link content-snap MIME packages" >&2
-        return 1
-      fi
-    fi
+    # The MIME database is built in a private staging directory (below)
+    # and published by an atomic rename; the staged tree already carries
+    # the packages symlink into the content snap, so no separate link
+    # step is needed here.
 
     export XDG_DATA_DIRS="$data_share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
     # update-mime-database is not safe to run concurrently against the

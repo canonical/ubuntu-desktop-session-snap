@@ -10,7 +10,14 @@ resource_tool="$SNAP/gnome/usr/bin/gresource"
 data_dir="$SNAP_USER_COMMON/gnome-shell-screencast-${SNAP_REVISION:-current}"
 resource_list="$data_dir/resources.list"
 stamp_file="$data_dir/content-stamp"
-lock_dir="$data_dir.lock"
+# Lock in the per-boot runtime directory: see gdk-pixbuf-env.sh for why
+# a SNAP_USER_COMMON lock is not reliable while the first session is
+# starting up.
+if [ -n "${XDG_RUNTIME_DIR:-}" ]; then
+  lock_dir="$XDG_RUNTIME_DIR/desktop-screencast.lock"
+else
+  lock_dir="$data_dir.lock"
+fi
 
 if ! content_stamp=$(stat -c '%Y:%i:%s' "$resource_file"); then
   echo "Failed to inspect the content-snap screencast modules" >&2
