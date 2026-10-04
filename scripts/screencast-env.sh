@@ -39,7 +39,7 @@ content_assets_ready() {
 if ! content_assets_ready; then
   if mkdir "$lock_dir" 2>/dev/null; then
     if ! mkdir -p "$data_dir/js"; then
-      rmdir "$lock_dir"
+      rmdir "$lock_dir" 2>/dev/null
       echo "Failed to create content-snap screencast directory" >&2
       return 1
     fi
@@ -47,7 +47,7 @@ if ! content_assets_ready; then
     resource_list_tmp="$resource_list.$$"
     if ! "$resource_tool" list "$resource_file" > "$resource_list_tmp"; then
       rm -f "$resource_list_tmp"
-      rmdir "$lock_dir"
+      rmdir "$lock_dir" 2>/dev/null
       echo "Failed to list content-snap screencast modules" >&2
       return 1
     fi
@@ -61,19 +61,19 @@ if ! content_assets_ready; then
           module_tmp="$module_path.$$"
           if ! mkdir -p "$data_dir/$relative_dir"; then
             rm -f "$resource_list_tmp"
-            rmdir "$lock_dir"
+            rmdir "$lock_dir" 2>/dev/null
             echo "Failed to create content-snap screencast module directory" >&2
             return 1
           fi
           if ! "$resource_tool" extract "$resource_file" "$resource_path" > "$module_tmp"; then
             rm -f "$module_tmp" "$resource_list_tmp"
-            rmdir "$lock_dir"
+            rmdir "$lock_dir" 2>/dev/null
             echo "Failed to extract content-snap screencast module: $resource_path" >&2
             return 1
           fi
           if ! mv "$module_tmp" "$module_path"; then
             rm -f "$module_tmp" "$resource_list_tmp"
-            rmdir "$lock_dir"
+            rmdir "$lock_dir" 2>/dev/null
             echo "Failed to install content-snap screencast module: $resource_path" >&2
             return 1
           fi
@@ -83,7 +83,7 @@ if ! content_assets_ready; then
 
     if ! mv "$resource_list_tmp" "$resource_list"; then
       rm -f "$resource_list_tmp"
-      rmdir "$lock_dir"
+      rmdir "$lock_dir" 2>/dev/null
       echo "Failed to install content-snap screencast module list" >&2
       return 1
     fi
@@ -92,7 +92,7 @@ if ! content_assets_ready; then
     if ! printf '%s\n' "import {main} from './js/main.js';" "await main();" > "$entrypoint_tmp" ||
       ! mv "$entrypoint_tmp" "$data_dir/entrypoint.js"; then
       rm -f "$entrypoint_tmp"
-      rmdir "$lock_dir"
+      rmdir "$lock_dir" 2>/dev/null
       echo "Failed to install content-snap screencast entry point" >&2
       return 1
     fi
@@ -101,11 +101,11 @@ if ! content_assets_ready; then
     if ! printf '%s\n' "$content_stamp" > "$stamp_tmp" ||
       ! mv "$stamp_tmp" "$stamp_file"; then
       rm -f "$stamp_tmp"
-      rmdir "$lock_dir"
+      rmdir "$lock_dir" 2>/dev/null
       echo "Failed to record content-snap screencast version" >&2
       return 1
     fi
-    if ! rmdir "$lock_dir"; then
+    if ! rmdir "$lock_dir" 2>/dev/null && [ -d "$lock_dir" ]; then
       echo "Failed to release content-snap screencast lock" >&2
       return 1
     fi

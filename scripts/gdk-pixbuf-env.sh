@@ -52,28 +52,37 @@ content_assets_ready() {
 if ! content_assets_ready; then
   if mkdir "$lock_dir" 2>/dev/null; then
     if ! mkdir -p "$mime_dir" "$glycin_config_dir" "$glycin_wrapper_dir"; then
-      rmdir "$lock_dir"
+      rmdir "$lock_dir" 2>/dev/null
       echo "Failed to create content-snap image data directories" >&2
       return 1
     fi
 
-    if [ -L "$mime_dir/packages" ] &&
-      [ "$(readlink "$mime_dir/packages")" != "$mime_packages" ]; then
-      if ! rm -f "$mime_dir/packages"; then
-        rmdir "$lock_dir"
+    if [ "$(readlink "$mime_dir/packages")" = "$mime_packages" ]; then
+      # Already linked (possibly left dangling by a concurrent invocation
+      # while the content mount was still settling, or linked by a
+      # concurrent run that won this lock first): nothing to do.
+      :
+    elif [ -e "$mime_dir/packages" ] || [ -L "$mime_dir/packages" ]; then
+      if ! rm -f "$mime_dir/packages" ||
+         ! ln -s "$mime_packages" "$mime_dir/packages"; then
+        rmdir "$lock_dir" 2>/dev/null
         echo "Failed to update content-snap MIME package link" >&2
         return 1
       fi
-    fi
-    if [ ! -e "$mime_dir/packages" ] && ! ln -s "$mime_packages" "$mime_dir/packages"; then
-      rmdir "$lock_dir"
-      echo "Failed to link content-snap MIME packages" >&2
-      return 1
+    elif ! ln -s "$mime_packages" "$mime_dir/packages"; then
+      # A concurrent invocation may have created the link between the
+      # existence checks above and this ln; that is benign as long as it
+      # points at this content snap's packages directory.
+      if [ "$(readlink "$mime_dir/packages")" != "$mime_packages" ]; then
+        rmdir "$lock_dir" 2>/dev/null
+        echo "Failed to link content-snap MIME packages" >&2
+        return 1
+      fi
     fi
 
     export XDG_DATA_DIRS="$data_share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
     if ! "$SNAP/gnome/usr/bin/update-mime-database" "$mime_dir"; then
-      rmdir "$lock_dir"
+      rmdir "$lock_dir" 2>/dev/null
       echo "Failed to generate content-snap MIME cache" >&2
       return 1
     fi
@@ -90,7 +99,7 @@ if ! content_assets_ready; then
         ! chmod 0755 "$glycin_wrapper_tmp" ||
         ! mv "$glycin_wrapper_tmp" "$glycin_wrapper"; then
         rm -f "$glycin_wrapper_tmp"
-        rmdir "$lock_dir"
+        rmdir "$lock_dir" 2>/dev/null
         echo "Failed to prepare a content-snap Glycin loader wrapper" >&2
         return 1
       fi
@@ -102,13 +111,13 @@ if ! content_assets_ready; then
         -e "s#/usr/libexec/glycin-loaders/2+/#$glycin_wrapper_dir/#g" \
         "$glycin_config" > "$glycin_tmp"; then
         rm -f "$glycin_tmp"
-        rmdir "$lock_dir"
+        rmdir "$lock_dir" 2>/dev/null
         echo "Failed to prepare content-snap Glycin loader configuration" >&2
         return 1
       fi
       if ! mv "$glycin_tmp" "$glycin_config_dir/$(basename "$glycin_config")"; then
         rm -f "$glycin_tmp"
-        rmdir "$lock_dir"
+        rmdir "$lock_dir" 2>/dev/null
         echo "Failed to install content-snap Glycin loader configuration" >&2
         return 1
       fi
@@ -117,13 +126,13 @@ if ! content_assets_ready; then
     loader_tmp="$loader_cache.$$"
     if ! "$loader_query" "$loader_module_dir"/*.so > "$loader_tmp"; then
       rm -f "$loader_tmp"
-      rmdir "$lock_dir"
+      rmdir "$lock_dir" 2>/dev/null
       echo "Failed to generate content-snap GdkPixbuf loader cache" >&2
       return 1
     fi
     if ! mv "$loader_tmp" "$loader_cache"; then
       rm -f "$loader_tmp"
-      rmdir "$lock_dir"
+      rmdir "$lock_dir" 2>/dev/null
       echo "Failed to install content-snap GdkPixbuf loader cache" >&2
       return 1
     fi
@@ -132,11 +141,11 @@ if ! content_assets_ready; then
     if ! printf '%s\n' "$content_stamp" > "$stamp_tmp" ||
       ! mv "$stamp_tmp" "$stamp_file"; then
       rm -f "$stamp_tmp"
-      rmdir "$lock_dir"
+      rmdir "$lock_dir" 2>/dev/null
       echo "Failed to record content-snap image data version" >&2
       return 1
     fi
-    if ! rmdir "$lock_dir"; then
+    if ! rmdir "$lock_dir" 2>/dev/null && [ -d "$lock_dir" ]; then
       echo "Failed to release content-snap image data lock" >&2
       return 1
     fi
