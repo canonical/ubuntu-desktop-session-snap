@@ -83,7 +83,7 @@ if ! content_assets_ready; then
     # independently of the lock.
     mime_stage="$data_dir/.mime-staging.$$"
     rm -rf "$mime_stage"
-    if ! mkdir -p "$mime_stage/packages" ||
+    if ! mkdir -p "$mime_stage" ||
        ! ln -s "$mime_packages" "$mime_stage/packages"; then
       rm -rf "$mime_stage"
       rmdir "$lock_dir" 2>/dev/null
