@@ -30,6 +30,7 @@ if ! content_stamp=$(stat -c '%Y:%i' "$mime_packages" "$loader_module_dir" "$gly
   return 1
 fi
 
+
 glycin_wrappers_ready() {
   found=0
   for glycin_loader in "$glycin_loader_dir"/*; do
@@ -81,10 +82,44 @@ if ! content_assets_ready; then
     fi
 
     export XDG_DATA_DIRS="$data_share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
-    if ! "$SNAP/gnome/usr/bin/update-mime-database" "$mime_dir"; then
+    # update-mime-database is not safe to run concurrently against the
+    # same directory (its <file>.new renames collide), and several
+    # session apps source this script at login. Build the database in a
+    # private staging directory and publish it with a directory swap so
+    # concurrent invocations can never corrupt each other's output,
+    # independently of the lock.
+    mime_stage="$data_dir/.mime-staging.$$"
+    rm -rf "$mime_stage"
+    if ! mkdir -p "$mime_stage/packages" ||
+       ! ln -s "$mime_packages" "$mime_stage/packages"; then
+      rm -rf "$mime_stage"
+      rmdir "$lock_dir" 2>/dev/null
+      echo "Failed to prepare content-snap MIME staging directory" >&2
+      return 1
+    fi
+    if ! "$SNAP/gnome/usr/bin/update-mime-database" "$mime_stage"; then
+      rm -rf "$mime_stage"
       rmdir "$lock_dir" 2>/dev/null
       echo "Failed to generate content-snap MIME cache" >&2
       return 1
+    fi
+    old_mime="$data_dir/.mime-old.$$"
+    if mv "$mime_dir" "$old_mime" 2>/dev/null; then
+      :
+    else
+      old_mime=""
+    fi
+    if ! mv "$mime_stage" "$mime_dir"; then
+      if [ -n "$old_mime" ]; then
+        mv "$old_mime" "$mime_dir" 2>/dev/null
+      fi
+      rm -rf "$mime_stage"
+      rmdir "$lock_dir" 2>/dev/null
+      echo "Failed to install content-snap MIME cache" >&2
+      return 1
+    fi
+    if [ -n "$old_mime" ]; then
+      rm -rf "$old_mime"
     fi
 
     for glycin_loader in "$glycin_loader_dir"/*; do

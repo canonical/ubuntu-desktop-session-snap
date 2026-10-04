@@ -426,7 +426,11 @@ apps:
       - wayland-client
   goa-daemon:
     command: run.sh /usr/libexec/goa-daemon
+    daemon: dbus
+    daemon-scope: user
     slots:
+      - dbus-gnome-online-accounts
+    activates-on:
       - dbus-gnome-online-accounts
     plugs:
       - account-control
@@ -439,7 +443,11 @@ apps:
       - network-manager
   goa-identity-service:
     command: run.sh /usr/libexec/goa-identity-service
+    daemon: dbus
+    daemon-scope: user
     slots:
+      - dbus-gnome-identity
+    activates-on:
       - dbus-gnome-identity
     plugs:
       - account-control
@@ -623,7 +631,11 @@ apps:
       - wayland-client
   gvfs-afc-volume-monitor:
     command: run.sh /usr/libexec/gvfs-afc-volume-monitor
+    daemon: dbus
+    daemon-scope: user
     slots:
+      - dbus-gtk-vfs-afc-volume-monitor
+    activates-on:
       - dbus-gtk-vfs-afc-volume-monitor
     plugs:
       - account-control
@@ -634,7 +646,11 @@ apps:
       - systemd-user-control
   gvfs-goa-volume-monitor:
     command: run.sh /usr/libexec/gvfs-goa-volume-monitor
+    daemon: dbus
+    daemon-scope: user
     slots:
+      - dbus-gtk-vfs-goa-volume-monitor
+    activates-on:
       - dbus-gtk-vfs-goa-volume-monitor
     plugs:
       - account-control
@@ -645,7 +661,11 @@ apps:
       - systemd-user-control
   gvfs-gphoto2-volume-monitor:
     command: run.sh /usr/libexec/gvfs-gphoto2-volume-monitor
+    daemon: dbus
+    daemon-scope: user
     slots:
+      - dbus-gtk-vfs-gphoto2-volume-monitor
+    activates-on:
       - dbus-gtk-vfs-gphoto2-volume-monitor
     plugs:
       - account-control
@@ -656,7 +676,11 @@ apps:
       - systemd-user-control
   gvfs-mtp-volume-monitor:
     command: run.sh /usr/libexec/gvfs-mtp-volume-monitor
+    daemon: dbus
+    daemon-scope: user
     slots:
+      - dbus-gtk-vfs-mtp-volume-monitor
+    activates-on:
       - dbus-gtk-vfs-mtp-volume-monitor
     plugs:
       - account-control
@@ -667,7 +691,11 @@ apps:
       - systemd-user-control
   gvfs-udisks2-volume-monitor:
     command: run.sh /usr/libexec/gvfs-udisks2-volume-monitor
+    daemon: dbus
+    daemon-scope: user
     slots:
+      - dbus-gtk-vfs-udisks2-volume-monitor
+    activates-on:
       - dbus-gtk-vfs-udisks2-volume-monitor
     plugs:
       - account-control
@@ -679,9 +707,13 @@ apps:
       - udisks2
   gvfsd:
     command: run.sh /usr/libexec/gvfsd
+    daemon: dbus
+    daemon-scope: user
     slots:
       - dbus-gtk-vfs-daemon
       - dbus-gtk-vfs-mountpoint
+    activates-on:
+      - dbus-gtk-vfs-daemon
     plugs:
       - account-control
       - locale-control
@@ -693,7 +725,11 @@ apps:
       - dot-hidden
   gvfsd-metadata:
     command: run.sh /usr/libexec/gvfsd-metadata
+    daemon: dbus
+    daemon-scope: user
     slots:
+      - dbus-gtk-vfs-metadata
+    activates-on:
       - dbus-gtk-vfs-metadata
     plugs:
       - account-control
