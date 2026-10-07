@@ -6,7 +6,7 @@ Provides a strictly confined desktop session for Ubuntu Core Desktop
 
 The snap uses the stock `core26` base. GNOME binaries, libraries,
 typelibs, schemas, data files, and D-Bus service files are supplied by
-the `gnome-desktop-content` snap, mounted at `$SNAP/gnome`. The session
+the `gnome-desktop-runtime` snap, mounted at `$SNAP/gnome`. The session
 environment and `run.sh` resolve executable and runtime paths through
 that mount; host service activation continues to enter through the
 session snap's declared apps.
@@ -35,7 +35,7 @@ seed time. The separate Shell screencast service remains available for its
 GJS-based recording API.
 
 GNOME Shell, the portal frontend and backend, and the Shell screencast
-service connect to the `gnome-desktop-content` snap's PipeWire slot and use
+service connect to the `gnome-desktop-runtime` snap's PipeWire slot and use
 its private runtime directory for screen recording. The session snap exposes
 the content snap's PipeWire and SPA modules through layouts so the confined
 clients can load the required plugins.

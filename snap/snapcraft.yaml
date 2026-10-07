@@ -106,7 +106,7 @@ apps:
     slots:
       - dbus-gnome-shell-screencast
     environment:
-      PIPEWIRE_RUNTIME_DIR: /run/user/$SNAP_UID/snap.gnome-desktop-content
+      PIPEWIRE_RUNTIME_DIR: /run/user/$SNAP_UID/snap.gnome-desktop-runtime
     activates-on:
       - dbus-gnome-shell-screencast
     plugs:
@@ -135,7 +135,7 @@ apps:
       - dbus-freedesktop-impl-portal-gnome
     restart-delay: 1s
     environment:
-      PIPEWIRE_RUNTIME_DIR: /run/user/$SNAP_UID/snap.gnome-desktop-content
+      PIPEWIRE_RUNTIME_DIR: /run/user/$SNAP_UID/snap.gnome-desktop-runtime
     plugs:
       - dbus-portal-desktop
       - dbus-gnome-shell-screencast-client
@@ -364,7 +364,7 @@ apps:
       - dbus-portal-permission-store
       - pipewire
     environment:
-      PIPEWIRE_RUNTIME_DIR: /run/user/$SNAP_UID/snap.gnome-desktop-content
+      PIPEWIRE_RUNTIME_DIR: /run/user/$SNAP_UID/snap.gnome-desktop-runtime
       XDG_DATA_DIRS: "$SNAP/gnome/usr/share/gdm/greeter:$SNAP/gnome/usr/share:$SNAP/usr/share:/usr/local/share:/usr/share:/var/lib/snapd/desktop"
   gnome-shell-calendar-server:
     command: run.sh /usr/libexec/gnome-shell-calendar-server
@@ -857,7 +857,7 @@ apps:
       - dbus-portal-permission-store
       - dbus-portal-secret
     environment:
-      PIPEWIRE_RUNTIME_DIR: /run/user/$SNAP_UID/snap.gnome-desktop-content
+      PIPEWIRE_RUNTIME_DIR: /run/user/$SNAP_UID/snap.gnome-desktop-runtime
   xdg-permission-store:
     command: run.sh /usr/libexec/xdg-permission-store
     daemon: dbus
@@ -963,8 +963,8 @@ apps:
       - home
 
 plugs:
-  gnome-desktop-content:
-    content: gnome-desktop-content
+  gnome-desktop-runtime:
+    content: gnome-desktop-runtime
     interface: content
     target: $SNAP/gnome
   session-environment-broker-client:
