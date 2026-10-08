@@ -365,7 +365,7 @@ apps:
       - pipewire
     environment:
       PIPEWIRE_RUNTIME_DIR: /run/user/$SNAP_UID/snap.gnome-desktop-runtime
-      XDG_DATA_DIRS: "$SNAP/gnome/usr/share/gdm/greeter:$SNAP/gnome/usr/share:$SNAP/usr/share:/usr/local/share:/usr/share:/var/lib/snapd/desktop"
+      XDG_DATA_DIRS: "$SNAP/gnome/usr/share:$SNAP/usr/share:/usr/local/share:/usr/share:/var/lib/snapd/desktop"
   gnome-shell-calendar-server:
     command: run.sh /usr/libexec/gnome-shell-calendar-server
     slots:
