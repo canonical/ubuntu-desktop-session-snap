@@ -232,6 +232,7 @@ apps:
       - dbus-gnome-settings
     plugs:
       - account-control
+      - accountsservice
       - locale-control
       - time-control
       - timeserver-control
@@ -276,6 +277,7 @@ apps:
     command: run.sh /usr/libexec/gnome-initial-setup
     plugs:
       - account-control
+      - accountsservice
       - locale-control
       - time-control
       - timeserver-control
@@ -286,6 +288,7 @@ apps:
     command: run.sh /usr/libexec/gnome-initial-setup-wrapper
     plugs:
       - account-control
+      - accountsservice
       - locale-control
       - time-control
       - timeserver-control
@@ -348,6 +351,7 @@ apps:
       - dbus-ibus-gtk3
     plugs:
       - account-control
+      - accountsservice
       - locale-control
       - time-control
       - timeserver-control
