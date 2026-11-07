@@ -98,6 +98,15 @@ apps:
       - home
       - shell-startup-files
       - wayland-client
+      # Parity with plasma-desktop-session's plasmashell: a terminal
+      # running the snap CLI inherits this profile; without
+      # systemd-user-control its /run/snapd.socket connect is
+      # AppArmor-denied ("connect: permission denied" after the 120s
+      # client retry loop). The fork's interface grants
+      # /run/snapd.socket rw; the plug is gadget-statically-connected
+      # snap-wide (build.sh gnome simple_plugs) -- only this app-level
+      # declaration was missing.
+      - systemd-user-control
 
   screencast-service:
     command: run.sh /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.Shell.Screencast
