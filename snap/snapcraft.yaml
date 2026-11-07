@@ -234,6 +234,7 @@ apps:
       - account-control
       - accountsservice
       - fprintd
+      - bolt
       - locale-control
       - time-control
       - timeserver-control
@@ -354,6 +355,8 @@ apps:
       - account-control
       - accountsservice
       - fprintd
+      - bolt
+      - geoclue
       - locale-control
       - time-control
       - timeserver-control
@@ -496,6 +499,7 @@ apps:
     command: run.sh /usr/libexec/gsd-datetime
     plugs:
       - account-control
+      - geoclue
       - locale-control
       - time-control
       - timeserver-control
