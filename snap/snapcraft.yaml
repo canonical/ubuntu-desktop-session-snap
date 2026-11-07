@@ -1564,7 +1564,16 @@ parts:
       - git
     override-build: |
       cd $CRAFT_PROJECT_DIR
-      craftctl set version=$(date +%Y%m%d)+git$(git rev-parse --short HEAD)
+      # git describes the version when a real .git directory is present
+      # (CI checkouts). A git WORKTREE only carries a .git file pointing
+      # at an absolute host path, which dangles inside the build
+      # instance; there the go-build wrapper pre-writes the hash to
+      # .craft-version and that is used instead.
+      v=$(git rev-parse --short HEAD 2>/dev/null || true)
+      if [ -z "$v" ] && [ -f "$CRAFT_PROJECT_DIR/.craft-version" ]; then
+          v=$(cat "$CRAFT_PROJECT_DIR/.craft-version")
+      fi
+      craftctl set version=$(date +%Y%m%d)+git$v
   ubuntu-login-logo:
     plugin: nil
     stage-packages:

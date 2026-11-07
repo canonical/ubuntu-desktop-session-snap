@@ -1,3 +1,4 @@
 *.snap
 *.xz
 *~
+.craft-version
