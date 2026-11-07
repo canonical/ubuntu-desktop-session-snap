@@ -233,6 +233,7 @@ apps:
     plugs:
       - account-control
       - accountsservice
+      - fprintd
       - locale-control
       - time-control
       - timeserver-control
@@ -352,6 +353,7 @@ apps:
     plugs:
       - account-control
       - accountsservice
+      - fprintd
       - locale-control
       - time-control
       - timeserver-control
