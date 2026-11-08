@@ -11,6 +11,9 @@ platforms:
   amd64:
     build-on: [amd64]
     build-for: [amd64]
+  arm64:
+    build-on: [arm64]
+    build-for: [arm64]
 
 environment:
   HOME: $SNAP_REAL_HOME
@@ -54,8 +57,9 @@ layout:
     bind-file: $SNAP/usr/share/pixmaps/ubuntu-logo-text-dark.svg
   # TinySPARQL hard-codes this module directory; expose its content-snap
   # copy at the expected path inside the confined session mount namespace.
-  /usr/lib/x86_64-linux-gnu/tinysparql-3.0:
-    bind: $SNAP/gnome/usr/lib/x86_64-linux-gnu/tinysparql-3.0
+  # $CRAFT_ARCH_TRIPLET_BUILD_FOR is expanded by snapcraft at pack time.
+  /usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/tinysparql-3.0:
+    bind: $SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/tinysparql-3.0
   /usr/share/localsearch3:
     bind: $SNAP/gnome/usr/share/localsearch3
   /usr/share/backgrounds:

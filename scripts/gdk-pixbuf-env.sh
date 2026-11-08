@@ -5,7 +5,13 @@ if [ -z "${SNAP_USER_COMMON:-}" ]; then
   return 1
 fi
 
-triplet=x86_64-linux-gnu
+# The gdk-pixbuf loader paths live under the content snap's multiarch
+# directory; derive the triplet from $SNAP_ARCH (amd64 -> x86_64-linux-gnu,
+# arm64 -> aarch64-linux-gnu) so the script works on every architecture.
+case "${SNAP_ARCH:-amd64}" in
+  arm64) triplet=aarch64-linux-gnu ;;
+  *) triplet=x86_64-linux-gnu ;;
+esac
 data_dir="$SNAP_USER_COMMON/desktop-content-data-${SNAP_REVISION:-current}"
 data_share="$data_dir/share"
 mime_dir="$data_share/mime"

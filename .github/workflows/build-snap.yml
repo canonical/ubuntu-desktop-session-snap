@@ -39,3 +39,35 @@ jobs:
         path: ${{ steps.snapcraft.outputs.snap}}
         compression-level: 0 # No need to double-compress the snap
         retention-days: 7
+
+  # arm64 leg: native build on the hosted arm64 runner (the snapcraft.yaml
+  # declares both platforms; the body is triplet-variable). Publishes the
+  # distinct ubuntu-desktop-session-arm64.snap asset on desktop/26 only —
+  # the other branches keep their single-arch amd64 builds.
+  snap-arm64:
+    if: github.ref_name == 'desktop/26'
+    runs-on: ubuntu-24.04-arm
+    steps:
+    - uses: actions/checkout@v4
+    - uses: snapcore/action-build@v1
+      id: snapcraft
+      with:
+        snapcraft-channel: edge
+    - name: Normalize snap filename
+      run: cp "${{ steps.snapcraft.outputs.snap }}" ubuntu-desktop-session-arm64.snap
+    - name: Publish to desktop-26-latest release
+      if: github.event_name != 'pull_request'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release view desktop-26-latest -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+          || gh release create desktop-26-latest -R "$GITHUB_REPOSITORY" \
+               --title "desktop/26 latest snap" \
+               --notes "Rolling latest desktop/26 snap build; assets are replaced on every green build."
+        gh release upload desktop-26-latest ubuntu-desktop-session-arm64.snap -R "$GITHUB_REPOSITORY" --clobber
+    - uses: actions/upload-artifact@v4
+      with:
+        name: 'snap-arm64'
+        path: ${{ steps.snapcraft.outputs.snap}}
+        compression-level: 0 # No need to double-compress the snap
+        retention-days: 7
