@@ -102,6 +102,7 @@ apps:
       - home
       - shell-startup-files
       - wayland-client
+      - desktop-legacy
       # Parity with plasma-desktop-session's plasmashell: a terminal
       # running the snap CLI inherits this profile; without
       # systemd-user-control its /run/snapd.socket connect is
@@ -135,6 +136,7 @@ apps:
       - home
       - dot-local-share-nautilus
       - dot-hidden
+      - desktop-legacy
     activates-on:
       - dbus-gnome-nautilus
 
@@ -155,6 +157,7 @@ apps:
       - dbus-gnome-shell-screenshot-client
       - dbus-gnome-mutter-screencast-client
       - pipewire
+      - desktop-legacy
 
   ibus-service:
     command: run.sh /usr/bin/ibus-daemon --panel disable
@@ -169,6 +172,8 @@ apps:
     daemon-scope: user
     activates-on:
       - dbus-ibus-gtk3
+    plugs:
+      - desktop-legacy
 
   ibus-portal-service:
     command: run-ibus-portal.sh
@@ -218,6 +223,7 @@ apps:
       - timezone-control
       - systemd-user-control
       - wayland-client
+      - desktop-legacy
   gcr-ssh-agent:
     command: run.sh /usr/libexec/gcr-ssh-agent
     plugs:
@@ -254,6 +260,7 @@ apps:
       - timezone-control
       - systemd-user-control
       - wayland-client
+      - desktop-legacy
   gnome-control-center-global-shortcuts-provider:
     command: run.sh /usr/libexec/gnome-control-center-global-shortcuts-provider
     slots:
@@ -265,6 +272,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - desktop-legacy
   gnome-control-center-search-provider:
     command: run.sh /usr/libexec/gnome-control-center-search-provider
     slots:
@@ -276,6 +284,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - desktop-legacy
   gnome-extensions-app:
     command: run.sh /usr/bin/gnome-extensions-app
     slots:
@@ -365,6 +374,14 @@ apps:
       - dbus-ibus
       - dbus-ibus-gtk3
     plugs:
+      # AT-SPI client grants (bus=accessibility rules, /run/user/*/at-spi/
+      # bus*, org.a11y.Bus.GetAddress): gnome-shell links libatk-bridge
+      # directly and must both expose its own UI to and receive events
+      # from assistive technologies. desktop-legacy is the interface
+      # carrying those grants; the slot comes from the snapd snap's
+      # implicit slot (gadget-statically connected, see the gadget
+      # desktop/26 connections block and build.sh gnome_gadget_connections).
+      - desktop-legacy
       - account-control
       - accountsservice
       - fprintd
@@ -916,6 +933,7 @@ apps:
       - systemd-user-control
       - wayland-client
       - dbus-portal-desktop
+      - desktop-legacy
   xdg-desktop-portal-rewrite-launchers:
     command: run.sh /usr/libexec/xdg-desktop-portal-rewrite-launchers
     plugs:
@@ -973,6 +991,7 @@ apps:
       - systemd-user-control
       - wayland-client
       - home
+      - desktop-legacy
   xdg-user-dirs-update:
     command: run.sh /usr/bin/xdg-user-dirs-update
     plugs:
