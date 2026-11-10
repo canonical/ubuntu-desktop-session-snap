@@ -382,6 +382,12 @@ apps:
       # implicit slot (gadget-statically connected, see the gadget
       # desktop/26 connections block and build.sh gnome_gadget_connections).
       - desktop-legacy
+      # T16 gate-1: client consent edge toward the snapped a11y provider
+      # (ubuntu-desktop-a11y:dbus-a11y); the provider's receive rules
+      # only admit connected-plug labels + unconfined peers. Spike wiring:
+      # gnome-shell only; the remaining at-spi client apps (901e17f set)
+      # get the same plug at integration.
+      - dbus-a11y-bus-client
       - account-control
       - accountsservice
       - fprintd
@@ -1051,6 +1057,19 @@ plugs:
     interface: dbus
     bus: session
     name: org.gnome.Mutter.ScreenCast
+  # T16 gate-1 finding: the provider-side receive policy of a dbus slot
+  # is scoped to the CONNECTED plugs' security tags (plus the unconfined
+  # compat block in the snapd fork). gnome-shell's GetAddress send is
+  # granted by desktop-legacy (901e17f + the fork widening), but the
+  # a11y provider (ubuntu-desktop-a11y:dbus-a11y) rejects confined peers
+  # that hold no connected plug for org.a11y.Bus. This client plug is
+  # the consent edge for the session snap's apps; connect it to
+  # ubuntu-desktop-a11y:dbus-a11y at image assembly (T11 review §6:
+  # connections established before the session starts).
+  dbus-a11y-bus-client:
+    interface: dbus
+    bus: session
+    name: org.a11y.Bus
   pictures-directory:
     interface: personal-files
     write:
