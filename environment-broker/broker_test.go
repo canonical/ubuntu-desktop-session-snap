@@ -104,6 +104,56 @@ func TestUpdateEnvironmentFiltersAndRewrites(t *testing.T) {
 	}
 }
 
+func TestUpdateEnvironmentAbsolutizesRelativeWaylandDisplay(t *testing.T) {
+	manager := &fakeEnvironmentManager{}
+	b := &broker{
+		manager:        manager,
+		uid:            1000,
+		snapRuntimeDir: "/run/user/1000/snap.ubuntu-desktop-session",
+	}
+
+	if err := b.updateEnvironment(map[string]string{
+		"WAYLAND_DISPLAY": "wayland-0",
+	}, nil); err != nil {
+		t.Fatal(err)
+	}
+
+	want := "/run/user/1000/snap.ubuntu-desktop-session/wayland-0"
+	if !contains(manager.set, "WAYLAND_DISPLAY="+want) {
+		t.Fatalf("systemd environment lacks absolutized WAYLAND_DISPLAY: %v", manager.set)
+	}
+	if manager.activation["WAYLAND_DISPLAY"] != want {
+		t.Fatalf("activation WAYLAND_DISPLAY = %q, want %q", manager.activation["WAYLAND_DISPLAY"], want)
+	}
+
+	// An already-absolute display path is exported unchanged.
+	manager = &fakeEnvironmentManager{}
+	b.manager = manager
+	if err := b.updateEnvironment(map[string]string{
+		"WAYLAND_DISPLAY": "/run/user/1000/wayland-0",
+	}, nil); err != nil {
+		t.Fatal(err)
+	}
+	if !contains(manager.set, "WAYLAND_DISPLAY=/run/user/1000/wayland-0") {
+		t.Fatalf("absolute WAYLAND_DISPLAY was mangled: %v", manager.set)
+	}
+}
+
+func TestUpdateEnvironmentLeavesWaylandDisplayAloneWithoutSnapRuntimeDir(t *testing.T) {
+	// Without a verified snap-private runtime dir (main.go only sets one
+	// for /run/user/<uid>/snap.<instance>) the broker cannot know where
+	// the compositor socket is; keep the historic pass-through.
+	manager := &fakeEnvironmentManager{}
+	b := &broker{manager: manager, uid: 1000}
+
+	if err := b.updateEnvironment(map[string]string{"WAYLAND_DISPLAY": "wayland-0"}, nil); err != nil {
+		t.Fatal(err)
+	}
+	if !contains(manager.set, "WAYLAND_DISPLAY=wayland-0") {
+		t.Fatalf("systemd environment = %v, want the bare name passed through", manager.set)
+	}
+}
+
 func TestUpdateEnvironmentClearsRequestedAllowlistedVariables(t *testing.T) {
 	manager := &fakeEnvironmentManager{}
 	b := &broker{manager: manager, uid: 1000}

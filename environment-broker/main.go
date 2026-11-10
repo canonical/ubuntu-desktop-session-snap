@@ -14,6 +14,23 @@ const (
 	interfaceName = "org.ubuntu.SessionEnvironmentBroker"
 )
 
+// snapRuntimeDir returns the snap-private runtime dir this daemon runs in
+// (/run/user/<uid>/snap.<instance>), which is also where the session's
+// confined compositor creates its wayland socket. Returns "" when the
+// environment does not look like that dir, disabling the WAYLAND_DISPLAY
+// absolutization.
+func snapRuntimeDir(uid int) string {
+	runtimeDir := os.Getenv("XDG_RUNTIME_DIR")
+	instance := os.Getenv("SNAP_INSTANCE_NAME")
+	if runtimeDir == "" || instance == "" {
+		return ""
+	}
+	if runtimeDir != fmt.Sprintf("/run/user/%d/snap.%s", uid, instance) {
+		return ""
+	}
+	return runtimeDir
+}
+
 func main() {
 	conn, err := dbus.ConnectSessionBus()
 	if err != nil {
@@ -23,9 +40,10 @@ func main() {
 	defer conn.Close()
 
 	b := &broker{
-		manager:       sessionBusManager{conn: conn},
-		uid:           uint32(os.Getuid()),
-		snapVariables: snapEnvironmentVariableNames(os.Environ()),
+		manager:        sessionBusManager{conn: conn},
+		uid:            uint32(os.Getuid()),
+		snapVariables:  snapEnvironmentVariableNames(os.Environ()),
+		snapRuntimeDir: snapRuntimeDir(os.Getuid()),
 	}
 	if err := conn.Export(b, objectPath, interfaceName); err != nil {
 		log.Printf("export environment broker: %v", err)

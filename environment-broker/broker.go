@@ -37,6 +37,11 @@ type broker struct {
 	manager       environmentManager
 	uid           uint32
 	snapVariables []string
+	// snapRuntimeDir is the snap-private runtime dir this daemon runs in
+	// (/run/user/<uid>/snap.<instance>), which is also where the session's
+	// confined compositor creates its wayland socket. Empty disables the
+	// WAYLAND_DISPLAY absolutization below.
+	snapRuntimeDir string
 }
 
 func (b *broker) UpdateEnvironment(sender dbus.Sender, set map[string]string, unset []string) *dbus.Error {
@@ -97,6 +102,17 @@ func (b *broker) updateEnvironment(set map[string]string, unset []string) error 
 		}
 		if !validValue(name, value, b.uid) {
 			return fmt.Errorf("invalid value for environment variable %s", name)
+		}
+		if name == "WAYLAND_DISPLAY" && waylandPattern.MatchString(value) && b.snapRuntimeDir != "" {
+			// The session's confined compositor creates its wayland socket
+			// under the snap-private runtime dir but advertises the bare
+			// socket name. Exported as-is, the user manager resolves it
+			// against the real /run/user/<uid>, where no socket exists,
+			// and every unit the manager spawns unconfined (orca.service,
+			// speech-dispatcher, the portals) loses the display. Export
+			// the literal socket path instead; libwayland and GDK treat
+			// an absolute WAYLAND_DISPLAY as a path.
+			value = path.Join(b.snapRuntimeDir, value)
 		}
 		accepted[name] = value
 	}
