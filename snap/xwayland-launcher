@@ -2,12 +2,12 @@
 # T26 gap (a) follow-up: launch the content snap's Xwayland with its
 # library path. The session's gnome-shell (mutter) spawns Xwayland from
 # the compiled-in /usr/bin/Xwayland (bind-file'd to this launcher via
-# the layout below); the thin base carries no Xwayland and the runtime
-# content snap's binary needs its own library tree on LD_LIBRARY_PATH.
-RT=/snap/gnome-desktop-runtime/current
-[ -x "$RT/usr/bin/Xwayland" ] || RT=/snap/gnome-desktop-runtime/x1
+# the layout below); the thin base carries no Xwayland. Inside the
+# session snap's namespace the runtime content is mounted at
+# $SNAP/gnome, so resolve the binary and its libraries from there.
+RT="${SNAP}/gnome"
 if [ ! -x "$RT/usr/bin/Xwayland" ]; then
-    echo "xwayland-launcher: no Xwayland in the gnome-desktop-runtime content snap" >&2
+    echo "xwayland-launcher: no Xwayland at $RT/usr/bin/Xwayland" >&2
     exit 1
 fi
 export LD_LIBRARY_PATH="$RT/usr/lib/x86_64-linux-gnu:$RT/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
