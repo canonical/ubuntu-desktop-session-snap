@@ -55,6 +55,18 @@ layout:
     bind: $SNAP/gnome/usr/share/xml/iso-codes
   /usr/share/pixmaps/ubuntu-logo-text-dark.svg:
     bind-file: $SNAP/usr/share/pixmaps/ubuntu-logo-text-dark.svg
+  # T26 gap (a) follow-up: mutter (the session's gnome-shell) spawns
+  # Xwayland on demand from the compiled-in /usr/bin/Xwayland when the
+  # first X11 client asks for the display - the thin base ships no
+  # Xwayland, so on the wizard's display the spawn failed ("Failed to
+  # execute child process \"/usr/bin/Xwayland\" (No such file or
+  # directory)") and the screen reader's display came up None (the
+  # corrected T25 gate-4 root cause: the abstract-X11 denial was only
+  # the first stage). This launcher execs the content snap's Xwayland
+  # with its library path. The wizard's display number is dynamic, so
+  # the launcher is display-agnostic.
+  /usr/bin/Xwayland:
+    bind-file: $SNAP/usr/bin/xwayland-launcher
   # TinySPARQL hard-codes this module directory; expose its content-snap
   # copy at the expected path inside the confined session mount namespace.
   # $CRAFT_ARCH_TRIPLET_BUILD_FOR is expanded by snapcraft at pack time.
@@ -1547,6 +1559,14 @@ slots:
     bus: session
 
 parts:
+  xwayland-launcher:
+    plugin: dump
+    source: snap/
+    organize:
+      xwayland-launcher: usr/bin/xwayland-launcher
+    prime:
+      - usr/bin/xwayland-launcher
+
   gnome-session-patched:
     plugin: nil
     source: https://download.gnome.org/sources/gnome-session/50/gnome-session-50.0.tar.xz
