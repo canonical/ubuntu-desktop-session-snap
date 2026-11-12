@@ -1,0 +1,27 @@
+#!/bin/sh
+# The keymap-compiler leg of the session Xwayland redirect: Xwayland's
+# keymap compiler is exec'd at the COMPILED-IN XKB_BIN_DIR
+# (/usr/bin/xkbcomp) and the session snap's base is stock core26, which
+# ships no xkbcomp. Inside this snap's mount namespace /usr comes from
+# the base snap's /usr, so neither the thin image rootfs's xkbcomp (the
+# wizard-session redirect, core-base-desktop 80bcb51) nor any host file
+# is visible here - the exec fails ("sh: 1: /usr/bin/xkbcomp: not
+# found"), Xwayland logs "XKB: Failed to compile keymap" and aborts
+# ("Failed to activate virtual core keyboard"), and the compositor's
+# main thread hangs forever in a synchronous connect to the dead X
+# socket - the confined user-session display freeze (T33/T34).
+#
+# Resolve the compiler through the content mount (the same shape as
+# snap/xwayland-launcher, e531eb3): the gnome content interface mounts
+# the runtime at $SNAP/gnome, which carries /usr/bin/xkbcomp (x11-xkb-
+# utils) and its libraries. The XKB data root needs no export here:
+# Xwayland passes it to the compiler via -R from the session's
+# XKB_CONFIG_ROOT (snapcraft.yaml environment), which points into the
+# same content mount.
+RT="${SNAP}/gnome"
+if [ ! -x "$RT/usr/bin/xkbcomp" ]; then
+    echo "xkbcomp-launcher: no xkbcomp at $RT/usr/bin/xkbcomp" >&2
+    exit 1
+fi
+export LD_LIBRARY_PATH="$RT/usr/lib/x86_64-linux-gnu:$RT/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+exec "$RT/usr/bin/xkbcomp" "$@"

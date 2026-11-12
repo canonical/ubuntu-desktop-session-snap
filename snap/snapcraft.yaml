@@ -67,6 +67,50 @@ layout:
   # the launcher is display-agnostic.
   /usr/bin/Xwayland:
     bind-file: $SNAP/usr/bin/xwayland-launcher
+  # The keymap-compiler leg of the same redirect: Xwayland execs
+  # xkbcomp at the compiled-in /usr/bin/xkbcomp (XKB_BIN_DIR). The
+  # session snap's base is stock core26 - its /usr has no xkbcomp, and
+  # the confined namespace never sees the image rootfs's redirect
+  # (core-base-desktop 80bcb51), so in confined user sessions the exec
+  # failed and every on-demand Xwayland died at "XKB: Failed to
+  # compile keymap" -> "Failed to activate virtual core keyboard" ->
+  # the compositor frozen in a synchronous connect to the dead X
+  # socket (the T33 display freeze; T34). Mirror the Xwayland
+  # launcher: resolve via the content mount. The XKB data comes from
+  # the session's XKB_CONFIG_ROOT (environment block above), which
+  # Xwayland passes to the compiler via -R.
+  /usr/bin/xkbcomp:
+    bind-file: $SNAP/usr/bin/xkbcomp-launcher
+  # The XKB data leg: Xwayland's server-side keymap init resolves the
+  # RMLVO rules at the COMPILED-IN base directory /usr/share/X11/xkb
+  # (XkbBaseDirectory, xkbInit.c - no environment override, only the
+  # -xkbdir argument). The session snap's base is stock core26, whose
+  # /usr has no xkb data, so the rules lookup failed in every confined
+  # user session BEFORE the compiler was ever exec'd ("XKB: Failed to
+  # compile keymap" with no xkbcomp run at all). The thin IMAGE rootfs
+  # bakes the data (the wizard session, unconfined, sees it - which is
+  # why only confined sessions failed) and the content snap carries the
+  # same tree; bind it at the compiled-in path inside this snap's
+  # namespace, the same shape as the /usr/share/gnome-shell binding.
+  # This also makes the -R flag Xwayland passes to xkbcomp resolve.
+  # NOTE: the content snap ships /usr/share/X11/xkb as a compat SYMLINK
+  # to ../xkeyboard-config-2; bind the REAL directory (a symlink is not
+  # a valid bind-mount source - "cannot update snap namespace: cannot
+  # use ... as bind-mount source: not a directory").
+  /usr/share/X11/xkb:
+    bind: $SNAP/gnome/usr/share/xkeyboard-config-2
+  # The X11 frames client, the LAST stage of mutter's X11 display init
+  # (src/x11/meta-x11-frame.c launches MUTTER_LIBEXECDIR
+  # "/mutter-x11-frames", falls back to ./src/frames/..., and returns
+  # NULL on the double ENOENT which meta_x11_display_init_frames_client
+  # feeds to g_subprocess_wait_async unguarded - the T27/T28-documented
+  # gnome-shell SEGV 11). With the keymap fixed this stage surfaced in
+  # the confined user session ("Could not launch X11 frames client");
+  # the content snap ships the helper and the session environment
+  # already carries the content lib dirs on LD_LIBRARY_PATH, so a
+  # direct bind-file suffices (no launcher script).
+  /usr/libexec/mutter-x11-frames:
+    bind-file: $SNAP/gnome/usr/libexec/mutter-x11-frames
   # TinySPARQL hard-codes this module directory; expose its content-snap
   # copy at the expected path inside the confined session mount namespace.
   # $CRAFT_ARCH_TRIPLET_BUILD_FOR is expanded by snapcraft at pack time.
@@ -1564,8 +1608,10 @@ parts:
     source: snap/
     organize:
       xwayland-launcher: usr/bin/xwayland-launcher
+      xkbcomp-launcher: usr/bin/xkbcomp-launcher
     prime:
       - usr/bin/xwayland-launcher
+      - usr/bin/xkbcomp-launcher
 
   gnome-session-patched:
     plugin: nil
