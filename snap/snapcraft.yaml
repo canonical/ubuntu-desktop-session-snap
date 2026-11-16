@@ -116,6 +116,15 @@ layout:
   # $CRAFT_ARCH_TRIPLET_BUILD_FOR is expanded by snapcraft at pack time.
   /usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/tinysparql-3.0:
     bind: $SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/tinysparql-3.0
+  # Same shape as tinysparql-3.0 above: libcanberra dlopens its audio
+  # backend modules (libcanberra-pulse.so, shipped by the content snap's
+  # libcanberra-pulse stage-package) from its compiled-in absolute
+  # directory. Without the mapping every canberra play fails with
+  # "No such driver" inside the confined session -- audible as the
+  # Settings "Test speakers" dialog producing no sound, while normal
+  # app audio (libpulse/pipewire clients) is unaffected.
+  /usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libcanberra-0.30:
+    bind: $SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libcanberra-0.30
   /usr/share/localsearch3:
     bind: $SNAP/gnome/usr/share/localsearch3
   /usr/share/backgrounds:
