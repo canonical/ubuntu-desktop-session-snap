@@ -15,7 +15,16 @@ mkdir -p --mode=700 $XDG_RUNTIME_DIR
 . "$SNAP/fontconfig-env.sh" || exit 1
 . "$SNAP/gdk-pixbuf-env.sh" || exit 1
 
-export PULSE_SERVER=unix:/run/user/`id -u`/pulse/native
+# T46: resolve the pulse socket that exists (see scripts/run.sh for
+# the full rationale: the conventional path is only bound/hardlinked in
+# real user sessions; greeter/wizard sessions have the snap-private
+# socket only).
+_pulse_uid=`id -u`
+if [ -S "/run/user/$_pulse_uid/pulse/native" ]; then
+	export PULSE_SERVER=unix:/run/user/$_pulse_uid/pulse/native
+else
+	export PULSE_SERVER=unix:/run/user/$_pulse_uid/snap.pipewire/pulse/native
+fi
 export GNOME_SHELL_SESSION_MODE=ubuntu
 export XDG_CURRENT_DESKTOP=ubuntu:GNOME
 

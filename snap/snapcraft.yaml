@@ -125,6 +125,19 @@ layout:
   # app audio (libpulse/pipewire clients) is unaffected.
   /usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libcanberra-0.30:
     bind: $SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libcanberra-0.30
+  # T46: the localsearch-3 indexer binary. The content snap ships
+  # /usr/libexec/localsearch-3 (the tracker-miners daemon), but nothing
+  # in the session snap's mount namespace resolved the deb's absolute
+  # path: the gnome-session fork's autostart scan (inside this
+  # namespace) failed the localsearch-3.desktop TryExec check and the
+  # indexer was unreachable for any in-snap launcher. Bind the content
+  # copy at the compiled-in path. NOTE: the systemd USER UNIT
+  # localsearch-3.service (delivered to the host user manager via the
+  # user.control symlink) is exec'd by the manager OUTSIDE this
+  # namespace and still needs the core-override ExecStart drop-in (see
+  # T46-session-snap-fixes.txt); this layout completes the in-snap side.
+  /usr/libexec/localsearch-3:
+    bind-file: $SNAP/gnome/usr/libexec/localsearch-3
   /usr/share/localsearch3:
     bind: $SNAP/gnome/usr/share/localsearch3
   /usr/share/backgrounds:
