@@ -58,6 +58,22 @@ case "$WAYLAND_DISPLAY" in
 	*) export WAYLAND_DISPLAY="/run/user/`id -u`/$WAYLAND_DISPLAY" ;;
 esac
 
+# T53: the shell IS mutter -- it validates /tmp/.X11-unix inside this
+# snap's shared private tmp when it spawns Xwayland (mutter
+# ensure_x11_unix_perms: the dir must be owned by /tmp's uid or by us,
+# be sticky+writable, else the shell SIGABRTs "Failed to start X
+# Wayland: Wrong ownership"). Heal it once, before the compositor
+# launches. This branch covers ALL session kinds: the wizard, greeter
+# and user shells all dispatch through this app (@initial-setup/@gdm/
+# @ubuntu -> gnome-content-launch --session-dispatch gnome-shell ->
+# /snap/bin/ubuntu-desktop-session.gnome-shell -> here). See
+# ensure-x11-dir.sh for the full rationale; the ensure-x11-dir oneshot
+# service is the boot-time root pass that makes the dir root-owned
+# (acceptable to every uid) before any session starts.
+if [ "$1" = "$SNAP/gnome/usr/bin/gnome-shell" ]; then
+	"$SNAP/ensure-x11-dir.sh" || true
+fi
+
 if [ "$1" = "$SNAP/gnome/usr/bin/gnome-shell" ] || [ "$1" = "$SNAP/gnome/usr/libexec/xdg-desktop-portal-gnome" ]; then
 	# Avoid synchronous portal lookups while Shell and its backend start.
 	export GIO_USE_MEMORY_MONITOR=poll

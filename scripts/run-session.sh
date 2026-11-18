@@ -5,9 +5,20 @@ if command -v xdg-user-dirs-update >/dev/null; then
   xdg-user-dirs-update
 fi
 
-# Ensure socket directories exist and have the right permissions
-mkdir -p /tmp/.X11-unix /tmp/.ICE-unix
-chmod 01777 /tmp/.X11-unix /tmp/.ICE-unix
+# T53: the full /tmp/.X11-unix self-heal (see ensure-x11-dir.sh for the
+# why: the dir lives in the snap's shared private tmp and the previous
+# session may have left it foreign-owned, which makes the user session's
+# mutter SIGABRT). This is the early pass before gnome-session spawns
+# anything; the session's compositor re-runs the heal via run.sh's
+# gnome-shell branch, and the ensure-x11-dir oneshot service is the
+# boot-time root pass. The old bare `mkdir -p` + `chmod 01777` pair
+# silently no-oped/EPERM'd on a foreign-owned dir (chmod by a non-owner
+# is denied regardless of sticky) -- exactly the pre-T53 failure path.
+"$SNAP/ensure-x11-dir.sh" || true
+# .ICE-unix has no observed cross-uid failure (libICE does not run
+# mutter's ownership check); keep the legacy creation.
+mkdir -p /tmp/.ICE-unix
+chmod 01777 /tmp/.ICE-unix
 
 # Create the runtime directory
 mkdir -p --mode=700 $XDG_RUNTIME_DIR

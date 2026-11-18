@@ -185,6 +185,31 @@ apps:
       - gnome-content-launch
       - systemd-user-control
 
+  ensure-x11-dir:
+    # T53: the boot-time root pass for /tmp/.X11-unix in this snap's
+    # SHARED private tmp (snap-confine bind-mounts the host path
+    # /tmp/snap-private-tmp/snap.ubuntu-desktop-session/tmp,
+    # root:root 01777, over /tmp for every process of this snap, so
+    # the dir is shared across ALL sessions regardless of uid). Root
+    # daemons of this snap see the same shared tmp; the launcher-side
+    # self-heal (run.sh's gnome-shell branch + run-session.sh) runs as
+    # the session uid and CANNOT fix a foreign-owned dir: the private
+    # tmp root is sticky root:root 01777 and the kernel check_sticky
+    # only lets the entry owner or root remove it. mutter (running as
+    # each session's uid) accepts a root-owned dir from EVERY uid
+    # (ensure_x11_unix_perms: dir uid == /tmp uid or == own uid,
+    # sticky+writable), so normalizing the dir to root-owned at boot
+    # removes the collision structurally: the wizard's dynamic-uid
+    # mutter and the user session's mutter both accept it and nothing
+    # ever needs to remove it. chown (non-destructive) is preferred
+    # over remove+recreate so a live session's sockets keep working if
+    # this service is ever re-run mid-flight. The strict template
+    # already grants /tmp/ r + /tmp/** mrwlkix, so this confined root
+    # service needs no plugs. One-shot at boot; oneshot services are
+    # started before the display manager pulls in the first session.
+    command: ensure-x11-dir.sh
+    daemon: oneshot
+
   gnome-terminal-server:
     command: run.sh /usr/libexec/gnome-terminal-server
     daemon: dbus
