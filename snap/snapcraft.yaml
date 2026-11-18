@@ -503,6 +503,35 @@ apps:
       - dbus-gnome-keyring-sysprompter
       - dbus-ibus
       - dbus-ibus-gtk3
+      # T54: the shell FORKS dbus-owning children that inherit this
+      # app's AppArmor profile (label snap.ubuntu-desktop-session.
+      # gnome-shell) — the a11y menu's "Accessibility Settings"
+      # activates gnome-universal-access-panel.desktop, and with no
+      # org.gnome.Settings activation file gio falls back to
+      # fork+exec from the shell; DING (the desktop-icons extension)
+      # and the file-manager launch path are the same shape. The
+      # permanent-slot dbus (bind) rules only land in the profiles of
+      # the apps referencing the slot (or in EVERY app when no app
+      # references it), so the shell's profile needs these references
+      # or the children die on "dbus_bind DENIED ... not allowed to
+      # own the service" and exit (journal evidence: the panel's
+      # "Failed to register ... org.gnome.Settings", DING's
+      # "... org.gnome.Nautilus"). These three slots were already
+      # scoped (gnome-control-center / nautilus-service reference
+      # them) — this only ADDS the bind to the shell's profile.
+      - dbus-gnome-settings
+      - dbus-gnome-nautilus
+      - dbus-freedesktop-filemanager1
+      # T54: names with NO slot declaration anywhere (verbatim
+      # dbus_bind DENIED evidence under this label): the shell's own
+      # accessibility Manager bind (the T52 residual),
+      # com.canonical.Shell.PermissionPrompting, and the freedesktop
+      # Notifications name the shell owns when the split
+      # gnome-shell-notifications service is not started (greeter /
+      # wizard sessions).
+      - dbus-freedesktop-a11y-manager
+      - dbus-canonical-shell-permissionprompting
+      - dbus-freedesktop-notifications
     plugs:
       # AT-SPI client grants (bus=accessibility rules, /run/user/*/at-spi/
       # bus*, org.a11y.Bus.GetAddress): gnome-shell links libatk-bridge
@@ -579,6 +608,11 @@ apps:
     command: run.sh /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.Shell.Notifications
     slots:
       - dbus-gnome-shell-notifications
+      # T54: the notification daemon IS the freedesktop Notifications
+      # service (the freedesktop.org spec name) — the journal's verbatim
+      # "dbus_bind DENIED name=\"org.freedesktop.Notifications\" label=
+      # \"snap.ubuntu-desktop-session.gnome-shell-notifications\"".
+      - dbus-freedesktop-notifications
     plugs:
       - account-control
       - locale-control
@@ -1692,6 +1726,33 @@ slots:
     interface: dbus
     bus: session
     name: org.gtk.Notifications
+  # T54: the freedesktop Notifications name — the session's
+  # notification daemon (the gnome-shell-notifications app; the shell
+  # itself when the split service is not started) is the
+  # org.freedesktop.Notifications owner per the freedesktop.org
+  # notification spec. Scoped to the apps that own it (their slots
+  # lists); no activation file (the service is started by the session
+  # manager, not dbus activation).
+  dbus-freedesktop-notifications:
+    interface: dbus
+    bus: session
+    name: org.freedesktop.Notifications
+  # T54: the shell's own accessibility Manager bind (T52 residual —
+  # verbatim "dbus_bind DENIED name=\"org.freedesktop.a11y.Manager\"
+  # label=\"snap.ubuntu-desktop-session.gnome-shell\""). Scoped to
+  # gnome-shell.
+  dbus-freedesktop-a11y-manager:
+    interface: dbus
+    bus: session
+    name: org.freedesktop.a11y.Manager
+  # T54: the shell's permission-prompting service (verbatim
+  # "dbus_bind DENIED name=\"com.canonical.Shell.PermissionPrompting\"
+  # label=\"snap.ubuntu-desktop-session.gnome-shell\""). Scoped to
+  # gnome-shell.
+  dbus-canonical-shell-permissionprompting:
+    interface: dbus
+    bus: session
+    name: com.canonical.Shell.PermissionPrompting
   dbus-gtk-settings:
     interface: dbus
     bus: session
