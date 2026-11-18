@@ -686,6 +686,25 @@ apps:
     # seeds independently if the a11y plugin's start raced or failed).
     command: run.sh $SNAP/wizard-session-init.sh /usr/libexec/gsd-media-keys
     plugs:
+      # T51: the media-keys accelerator handshake against the WIZARD
+      # session's shell crosses an unconfined-peer boundary — the
+      # wizard's gnome-shell runs the CONTENT binary UNCONFINED (the
+      # gnome-content-launch alias branch), so the same-snap peer rule
+      # (peer=(label=snap.ubuntu-desktop-session.*)) that covers the
+      # GREETER's confined shell does not match its grab calls
+      # (org.gnome.Shell.GrabAccelerators) or the AcceleratorActivated
+      # signal deliveries. This plug connects to this snap's own
+      # dbus-gnome-shell slot (same-snap, implicit) and snapd
+      # generates exactly the two missing grants: the name-only send
+      # rule (peer=(name=org.gnome.Shell) — matches the unconfined
+      # shell owner) from dbusConnectedPlugAppArmor, and the slot's
+      # session receive rules (interface=org.gnome.Shell
+      # peer=(label=unconfined)) from dbusConnectedSlotAppArmorSession.
+      # Verified live pre-fix: "An AppArmor policy prevents this sender
+      # from sending this message to this recipient ... member=
+      # GrabAccelerators ... label=snap.ubuntu-desktop-session.
+      # gsd-media-keys (enforce) ... destination=... label=unconfined".
+      - dbus-gnome-shell-client
       - upower-observe
       - account-control
       - locale-control
@@ -1174,6 +1193,20 @@ plugs:
     interface: dbus
     bus: session
     name: org.gnome.Shell.Screencast
+  # T51: the client side of this snap's own dbus-gnome-shell slot
+  # (org.gnome.Shell). Connected to the slot (same-snap, implicit),
+  # the gsd-media-keys profile gains the name-only send rule
+  # (peer=(name=org.gnome.Shell), matching the wizard session's
+  # UNCONFINED shell owner) for the accelerator grabs, and the slot
+  # gains the session-bus receive rules (interface=org.gnome.Shell
+  # peer=(label=unconfined)) for the AcceleratorActivated signal
+  # deliveries. Without them the wizard's media-keys grabs are
+  # AppArmor-denied (the greeter's confined shell was covered by the
+  # same-snap peer rule; the wizard's shell is not).
+  dbus-gnome-shell-client:
+    interface: dbus
+    bus: session
+    name: org.gnome.Shell
   dbus-gnome-mutter-screencast-client:
     interface: dbus
     bus: session
