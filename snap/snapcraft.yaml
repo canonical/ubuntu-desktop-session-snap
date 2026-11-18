@@ -447,7 +447,7 @@ apps:
     # file into the user-manager environment so the chord-time
     # StartUnit("orca.service") starts a reader that can open a
     # display (orca dies at Gdk keymap init without one — T16).
-    command: run.sh wizard-session-init.sh $SNAP/usr/libexec/ubuntu-desktop-session/gnome-session-service
+    command: run.sh $SNAP/wizard-session-init.sh $SNAP/usr/libexec/ubuntu-desktop-session/gnome-session-service
     plugs:
       - account-control
       - locale-control
@@ -626,7 +626,10 @@ apps:
     # snap). The gate detects the wizard by account name, starts the
     # detached seeding/brokerage helper, then replicates run.sh's
     # content remap and execs.
-    command: run.sh wizard-session-init.sh /usr/libexec/gsd-a11y-settings
+    # NOTE: the gate is invoked with the explicit $SNAP prefix (a bare
+    # name would fail — the snap app PATH has no $SNAP root entry:
+    # "exec: wizard-session-init.sh: not found", observed live).
+    command: run.sh $SNAP/wizard-session-init.sh /usr/libexec/gsd-a11y-settings
     plugs:
       - account-control
       - locale-control
@@ -681,7 +684,7 @@ apps:
     # gsd-a11y-settings' — the helper flock-guards itself — but the
     # grabber is the one app the chord flow cannot do without, so it
     # seeds independently if the a11y plugin's start raced or failed).
-    command: run.sh wizard-session-init.sh /usr/libexec/gsd-media-keys
+    command: run.sh $SNAP/wizard-session-init.sh /usr/libexec/gsd-media-keys
     plugs:
       - upower-observe
       - account-control

@@ -68,6 +68,10 @@ if [ "$_wizard" = true ]; then
 fi
 unset _wizard _prev _a
 
+# Drop the gate's own path: run.sh exec'd this script as $1, and the
+# exec below must run the WRAPPED command, not re-exec the gate.
+shift
+
 # Replicate run.sh's content remap so the wrapped /usr/libexec/gsd-*
 # paths resolve against the gnome-desktop-runtime content mount (the
 # thin base ships no gsd binaries).
