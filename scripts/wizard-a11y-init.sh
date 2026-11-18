@@ -44,6 +44,33 @@ while [ $_bus_wait -lt 20 ]; do
 done
 echo "$(date '+%T.%N') wizard-a11y-init: bus after ${_bus_wait}s addr=$_addr" >&2
 
+# ---------- THE CHORD: seed the screen-reader keybinding ----------
+# gnome-shell --mode=initial-setup does not bind the stock
+# org.gnome.settings-daemon.plugins.media-keys screenreader chord
+# (<Super><Alt>s) — the keystroke leaks into the wizard's language
+# list (the Shqip type-ahead regression, [2026-11-18] spike entry).
+# gsd-media-keys RUNS in the wizard session (T42/T46) and picks
+# custom keybindings up LIVE (the custom-keybindings list change ->
+# update_custom_binding -> keys_sync -> shell GrabAccelerator), so
+# seeding here binds the chord for this session. The custom command
+# is executed by gsd-media-keys via g_app_info_create_from_commandline:
+# NO shell, NO env expansion — the literal $SNAP path is resolved
+# HERE, at seed time. gsd-a11y-settings (running in the wizard
+# session) reacts to the toggle script's flip:
+# StartUnit/StopUnit("orca.service") + the toolkit-accessibility
+# flip; on unit error its PATH fallback now resolves to the in-snap
+# /usr/bin/orca shim.
+_kb=org.gnome.settings-daemon.plugins.media-keys
+_kb_rel=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/
+_kb_schema=org.gnome.settings-daemon.plugins.media-keys.custom-keybinding
+echo "$(date '+%T.%N') seeding chord keybinding" >&2
+gsettings set "$_kb" custom-keybindings "['$_kb_rel']" >&2
+gsettings set "$_kb_schema:$_kb_rel" name 'screen-reader-toggle' >&2
+gsettings set "$_kb_schema:$_kb_rel" binding '<Super><Alt>s' >&2
+gsettings set "$_kb_schema:$_kb_rel" command "$SNAP/toggle-screen-reader" >&2
+echo "$(date '+%T.%N') seeded: $(gsettings get "$_kb_schema:$_kb_rel" binding 2>&1) / cmd=$(gsettings get "$_kb_schema:$_kb_rel" command 2>&1)" >&2
+unset _kb _kb_rel _kb_schema
+
 # ---------- the display/auth brokerage ----------
 _deadline=$(( $(date +%s) + 30 ))
 _auth=""

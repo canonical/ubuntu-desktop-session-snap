@@ -1,0 +1,45 @@
+#!/bin/sh
+# T51: the wizard-session screen-reader chord handler.
+#
+# gnome-shell --mode=initial-setup does not bind the stock
+# org.gnome.settings-daemon.plugins.media-keys screenreader chord
+# (<Super><Alt>s) — the keystroke leaked into the wizard's language
+# list (the Shqip type-ahead regression, [2026-11-18] spike entry).
+# The session snap therefore seeds a gsd MEDIA-KEYS CUSTOM KEYBINDING
+# for the initial-setup session (see wizard-a11y-init.sh) with THIS
+# script as the command. gsd-media-keys (running in the wizard
+# session, T42/T46) executes it via
+# g_app_info_create_from_commandline: no shell, no env expansion —
+# the command is seeded as the literal $SNAP path resolved at seed
+# time.
+#
+# The script only FLIPS org.gnome.desktop.a11y.applications
+# screen-reader-enabled. gsd-a11y-settings reacts (it runs in the
+# wizard session): StartUnit/StopUnit("orca.service") — the base's
+# thin-adapter unit execs the a11y snap's reader — plus the
+# toolkit-accessibility flip, and on unit error the PATH fallback,
+# which resolves to the in-snap orca shim
+# (/usr/bin/orca via the snap layout).
+_log="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/wizard-a11y-chord.log"
+
+_cur=$(gsettings get org.gnome.desktop.a11y.applications \
+	screen-reader-enabled 2>&1)
+case "$_cur" in
+	*true*)  _next=false ;;
+	*false*) _next=true ;;
+	*)
+		# Setting unreadable: default to enabling (a chord press
+		# with a broken settings stack should still attempt speech).
+		_next=true
+		_cur="unreadable"
+		;;
+esac
+
+echo "$(date '+%T.%N') chord: screen-reader-enabled $_cur -> $_next" \
+	>> "$_log" 2>/dev/null
+
+gsettings set org.gnome.desktop.a11y.applications \
+	screen-reader-enabled "$_next"
+_rc=$?
+echo "$(date '+%T.%N') chord: gsettings set rc=$_rc" >> "$_log" 2>/dev/null
+exit $_rc
