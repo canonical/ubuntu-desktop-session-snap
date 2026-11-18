@@ -32,6 +32,14 @@ _log_tag() { date '+%T.%N'; }
 _uid=$(id -u)
 _runtime="/run/user/$_uid"
 
+# Flock guard: the gate runs this helper from every wizard session-snap
+# app it wraps (gnome-session-service, gsd-a11y-settings,
+# gsd-media-keys). The FIRST instance does the work; the others exit
+# immediately. The lock is held for the helper's lifetime (~40s worst
+# case), not leaked.
+exec 9>>"${XDG_RUNTIME_DIR:-$_runtime/snap.ubuntu-desktop-session}/wizard-a11y-init.lock"
+flock -n 9 || exit 0
+
 # The bus to act on: the launcher env's DBUS_SESSION_BUS_ADDRESS
 # (snapd points session-snap apps at the real session bus).
 _bus_wait=0

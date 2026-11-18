@@ -617,7 +617,16 @@ apps:
       - timezone-control
       - systemd-user-control
   gsd-a11y-settings:
-    command: run.sh /usr/libexec/gsd-a11y-settings
+    # T51: the wizard session's actual session-snap entry point for the
+    # a11y chain. The base's org.gnome.SettingsDaemon.A11ySettings.service.d
+    # core-override redirect makes this app run in the wizard session
+    # (the session manager and shell run the CONTENT binaries directly
+    # there — the gnome-content-launch alias branch execs the content
+    # binary and only the gnome-login/ubuntu drop-ins dispatch to this
+    # snap). The gate detects the wizard by account name, starts the
+    # detached seeding/brokerage helper, then replicates run.sh's
+    # content remap and execs.
+    command: run.sh wizard-session-init.sh /usr/libexec/gsd-a11y-settings
     plugs:
       - account-control
       - locale-control
@@ -668,7 +677,11 @@ apps:
       - systemd-user-control
       - wayland-client
   gsd-media-keys:
-    command: run.sh /usr/libexec/gsd-media-keys
+    # T51: the chord GRABBER also runs the wizard gate (redundant with
+    # gsd-a11y-settings' — the helper flock-guards itself — but the
+    # grabber is the one app the chord flow cannot do without, so it
+    # seeds independently if the a11y plugin's start raced or failed).
+    command: run.sh wizard-session-init.sh /usr/libexec/gsd-media-keys
     plugs:
       - upower-observe
       - account-control
