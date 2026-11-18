@@ -1,0 +1,71 @@
+#!/bin/sh
+# T51: the session snap's `orca` launcher shim — the cross-snap launch
+# glue for gsd-a11y-settings' PATH-spawn fallback.
+#
+# Why this exists: the wizard (gnome-initial-setup) session's
+# gsd-a11y-settings runs from the session snap with the snap PATH
+# (snapcraft.yaml environment: $SNAP/gnome/usr/bin first, then /usr/
+# bin). The gnome-desktop-runtime content snap ships no orca and the
+# thin base ships no /usr/bin/orca, so the fallback spawn ("Spawning
+# fallback Orca", argv {"orca", "--replace"}) execs nothing — the
+# base's thin-adapter orca.service header documents exactly this dead
+# path ("its PATH-spawn fallback execs a /usr/bin/orca that exists in
+# no namespace"). The primary path is systemd
+# StartUnit("orca.service") (granted to this snap's gsd-a11y-settings
+# app via systemd-user-control); this shim is the fallback glue and
+# any other in-snap PATH-based orca spawn.
+#
+# The screen reader itself lives in the ubuntu-desktop-a11y snap; the
+# /snap/bin/ubuntu-desktop-a11y.orca alias (a symlink to /usr/bin/snap,
+# dispatched on argv[0]) execs the a11y snap's run-orca launcher, which
+# stages PYTHONPATH/GI_TYPELIB_PATH/SPEECHD_ADDRESS/etc. Arguments and
+# the environment pass through unchanged.
+#
+# The display/auth brokerage: orca dies at Gdk keymap init when no
+# display opens (the T16 greeter finding) — the wizard's wayland
+# session has no DISPLAY until mutter's transient Xwayland appears.
+# If the caller's env lacks DISPLAY/XAUTHORITY, resolve the wizard
+# session's mutter-owned Xwayland socket against mutter's own auth
+# file (bounded poll), export the pair, then exec. When the caller
+# already carries a display (orca.service started after the wizard
+# session's brokerage exported the manager env), pass through
+# untouched.
+uid=$(id -u)
+_runtime="/run/user/$uid"
+
+if [ -z "${DISPLAY:-}" ] || [ -z "${XAUTHORITY:-}" ]; then
+	_auth=""
+	_deadline=$(( $(date +%s) + 10 ))
+	while [ "$(date +%s)" -lt "$_deadline" ]; do
+		_auth=$(ls -t "$_runtime"/.mutter-Xwaylandauth.* 2>/dev/null | head -n 1)
+		[ -n "$_auth" ] && break
+		sleep 1
+	done
+
+	if [ -n "$_auth" ]; then
+		# The wizard's mutter spawns transient Xwayland(s); socket
+		# names are the display numbers (X1024/X1025 on the nouser
+		# bake). Validate socket + auth with a real X connect (xset
+		# from the content snap tree on PATH); the newest socket that
+		# accepts mutter's auth file is the mutter-owned one.
+		for _sock in $(ls -t /tmp/.X11-unix/X[0-9]* 2>/dev/null); do
+			_num=${_sock##*/X}
+			case $_num in ''|*[!0-9]*) continue ;; esac
+			if timeout 3 env DISPLAY=":$_num" XAUTHORITY="$_auth" \
+				xset q >/dev/null 2>&1; then
+				DISPLAY=":$_num"
+				XAUTHORITY="$_auth"
+				export DISPLAY XAUTHORITY
+				break
+			fi
+		done
+	fi
+fi
+
+# The recipe's belt-and-braces: force the toolkit AT bridge on in
+# everything orca spawns. NO_AT_BRIDGE=1 is the only disabling value;
+# =0 forces the bridge enabled (the proven manual-recipe env).
+NO_AT_BRIDGE=0
+export NO_AT_BRIDGE
+
+exec /snap/bin/ubuntu-desktop-a11y.orca "$@"

@@ -150,6 +150,21 @@ layout:
     symlink: $SNAP/gnome/usr/share/pipewire
   /usr/bin/fusermount3:
     bind-file: $SNAP/usr/libexec/ubuntu-desktop-session/fusermount3
+  # T51: the orca launcher shim. gsd-a11y-settings' PATH-spawn
+  # fallback (and any other in-snap PATH-based orca spawn) resolves
+  # the bare name `orca` via the snap PATH ($SNAP/gnome/usr/bin first,
+  # then /usr/bin); neither the gnome-desktop-runtime content snap nor
+  # the thin base ships an orca, so the fallback execs nothing (the
+  # base's thin-adapter orca.service header documents the dead path).
+  # Bind the shim at the compiled-in /usr/bin/orca inside this snap's
+  # namespace — the same shape as the /usr/bin/Xwayland and
+  # /usr/bin/fusermount3 bindings above. The shim resolves the wizard
+  # session's mutter Xwayland display + auth file when the caller's
+  # env lacks them and execs the a11y snap's reader wrapper
+  # (/snap/bin/ubuntu-desktop-a11y.orca) with arguments + environment
+  # passed through.
+  /usr/bin/orca:
+    bind-file: $SNAP/usr/bin/orca
 
 apps:
   ubuntu-desktop-session:
@@ -420,7 +435,19 @@ apps:
       - timezone-control
       - systemd-user-control
   gnome-session-service:
-    command: run.sh $SNAP/usr/libexec/ubuntu-desktop-session/gnome-session-service
+    # T51: the wizard-session init gate. The gate only acts on
+    # --session=gnome-initial-setup (the systemd template arg from
+    # gnome-session-manager@gnome-initial-setup.service; the ubuntu
+    # user session and the gnome-login greeter pass through
+    # unchanged): it seeds the <Super><Alt>s media-keys custom
+    # keybinding into the wizard session's dconf store (the stock
+    # shell chord is not bound in initial-setup mode — the keystroke
+    # leaked into the language list, the Shqip type-ahead regression)
+    # and resolves the wizard session's mutter Xwayland display + auth
+    # file into the user-manager environment so the chord-time
+    # StartUnit("orca.service") starts a reader that can open a
+    # display (orca dies at Gdk keymap init without one — T16).
+    command: run.sh wizard-session-init.sh $SNAP/usr/libexec/ubuntu-desktop-session/gnome-session-service
     plugs:
       - account-control
       - locale-control
