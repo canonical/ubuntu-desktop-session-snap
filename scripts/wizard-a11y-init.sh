@@ -80,43 +80,68 @@ echo "$(date '+%T.%N') seeded: $(gsettings get "$_kb_schema:$_kb_rel" binding 2>
 unset _kb _kb_rel _kb_schema
 
 # ---------- the display/auth brokerage ----------
-_deadline=$(( $(date +%s) + 30 ))
-_auth=""
-while [ "$(date +%s)" -lt "$_deadline" ]; do
-	_auth=$(ls -t "$_runtime"/.mutter-Xwaylandauth.* 2>/dev/null | head -n 1)
-	[ -n "$_auth" ] && break
-	sleep 1
-done
-if [ -z "$_auth" ]; then
-	echo "$(date '+%T.%N') brokerage: NO mutter auth file within 30s — giving up" >&2
-	exit 1
-fi
-echo "$(date '+%T.%N') brokerage: auth=$_auth" >&2
+# SOURCE OF TRUTH: the systemd USER MANAGER env — the wizard's own
+# shell (the content gnome-shell, unconfined) exports DISPLAY/
+# XAUTHORITY into the manager env when its mutter Xwayland starts
+# (verified live: show-environment carried DISPLAY=:1024 +
+# /run/user/60578/.mutter-Xwaylandauth.*). orca.service inherits the
+# manager env at START time, so a manager env that already carries
+# the pair is sufficient. The socket-scan fallback below is
+# best-effort ONLY: confined snap apps get a PRIVATE /tmp
+# (snapd private-tmp) with NO /tmp/.X11-unix — verified live — so a
+# confined helper cannot see or validate the Xwayland sockets; that
+# path only ever works from an unconfined caller.
+_mgr=$(systemctl --user show-environment 2>/dev/null || true)
+_mgr_display=$(printf '%s\n' "$_mgr" | sed -n 's/^DISPLAY=//p' | head -n 1)
+_mgr_auth=$(printf '%s\n' "$_mgr" | sed -n 's/^XAUTHORITY=//p' | head -n 1)
+echo "$(date '+%T.%N') brokerage: manager env DISPLAY=${_mgr_display:-unset} XAUTHORITY=${_mgr_auth:+set}" >&2
 
-_display=""
-for _sock in $(ls -t /tmp/.X11-unix/X[0-9]* 2>/dev/null); do
-	_num=${_sock##*/X}
-	case $_num in ''|*[!0-9]*) continue ;; esac
-	if timeout 3 env DISPLAY=":$_num" XAUTHORITY="$_auth" \
-		xset q >/dev/null 2>&1; then
-		_display=":$_num"
-		break
+if [ -n "$_mgr_display" ] && [ -n "$_mgr_auth" ]; then
+	# The shell already brokered the display; only the recipe's
+	# belt-and-braces is missing.
+	systemctl --user set-environment NO_AT_BRIDGE=0
+	echo "$(date '+%T.%N') brokerage: manager env already carries the display; NO_AT_BRIDGE=0 set" >&2
+	_display="$_mgr_display"
+else
+	# Manager env has no display (shell failed or a non-GNOME
+	# placement): bounded poll for the mutter auth file, then try to
+	# validate sockets (only visible when the caller's /tmp is the
+	# host one).
+	_deadline=$(( $(date +%s) + 30 ))
+	_auth=""
+	while [ "$(date +%s)" -lt "$_deadline" ]; do
+		_auth=$(ls -t "$_runtime"/.mutter-Xwaylandauth.* 2>/dev/null | head -n 1)
+		[ -n "$_auth" ] && break
+		sleep 1
+	done
+	if [ -z "$_auth" ]; then
+		echo "$(date '+%T.%N') brokerage: NO mutter auth file within 30s — giving up" >&2
+		exit 1
 	fi
-	echo "$(date '+%T.%N') brokerage: socket :$_num rejected the auth file" >&2
-done
-if [ -z "$_display" ]; then
-	echo "$(date '+%T.%N') brokerage: no socket validated against the auth file" >&2
-	exit 1
+	echo "$(date '+%T.%N') brokerage: auth=$_auth" >&2
+	for _sock in $(ls -t /tmp/.X11-unix/X[0-9]* 2>/dev/null); do
+		_num=${_sock##*/X}
+		case $_num in ''|*[!0-9]*) continue ;; esac
+		if timeout 3 env DISPLAY=":$_num" XAUTHORITY="$_auth" \
+			xset q >/dev/null 2>&1; then
+			_display=":$_num"
+			break
+		fi
+		echo "$(date '+%T.%N') brokerage: socket :$_num rejected the auth file" >&2
+	done
+	if [ -z "$_display" ]; then
+		echo "$(date '+%T.%N') brokerage: no socket validated against the auth file" >&2
+		exit 1
+	fi
+	echo "$(date '+%T.%N') brokerage: validated $_display with $_auth" >&2
+	systemctl --user set-environment \
+		DISPLAY="$_display" XAUTHORITY="$_auth" NO_AT_BRIDGE=0
+	echo "$(date '+%T.%N') brokerage: systemctl set-environment rc=$?" >&2
 fi
-echo "$(date '+%T.%N') brokerage: validated $_display with $_auth" >&2
+unset _mgr _mgr_display _mgr_auth
 
-# Export into the systemd USER MANAGER env (orca.service inherits the
-# manager env at START time) and the bus activation env (best-effort:
-# the activation env covers non-systemd spawns).
-systemctl --user set-environment \
-	DISPLAY="$_display" XAUTHORITY="$_auth" NO_AT_BRIDGE=0
-_rc=$?
-echo "$(date '+%T.%N') brokerage: systemctl set-environment rc=$_rc" >&2
+# Export into the bus activation env too (best-effort: covers
+# non-systemd spawns; --systemd also syncs the manager env).
 if command -v dbus-update-activation-environment >/dev/null 2>&1; then
 	dbus-update-activation-environment --systemd \
 		DISPLAY XAUTHORITY NO_AT_BRIDGE >&2 || \
@@ -124,4 +149,4 @@ if command -v dbus-update-activation-environment >/dev/null 2>&1; then
 else
 	echo "$(date '+%T.%N') brokerage: dbus-update-activation-environment not present" >&2
 fi
-echo "$(date '+%T.%N') brokerage: done display=$_display" >&2
+echo "$(date '+%T.%N') brokerage: done display=${_display:-<manager-env>}" >&2

@@ -68,9 +68,14 @@ if [ "$_wizard" = true ]; then
 fi
 unset _wizard _prev _a
 
-# Drop the gate's own path: run.sh exec'd this script as $1, and the
-# exec below must run the WRAPPED command, not re-exec the gate.
-shift
+# NOTE (87f5e44 follow-up, verified live with an argv-logging debug
+# gate): there is NO gate path in "$@" to shift off — run.sh's
+# `exec "$@"` already placed the WRAPPED command at $1
+# (the gate's argv[0] is the script path, outside "$@"). The earlier
+# shift here dropped the target and left `exec "$@"` empty, which in
+# dash is a silent no-op that ends the script with exit 0 — the gsd
+# processes "exited status=0/SUCCESS" in under 100ms and the chord
+# grabber was down. The gate's "$@" is the wrapped command verbatim.
 
 # Replicate run.sh's content remap so the wrapped /usr/libexec/gsd-*
 # paths resolve against the gnome-desktop-runtime content mount (the
