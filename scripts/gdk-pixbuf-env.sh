@@ -157,8 +157,18 @@ if ! content_assets_ready; then
       fi
     done
 
+    # The query loads every pixbuf loader; the GTK/GIO-backed ones ask
+    # GIO for the default VFS, which activates gvfsd over the session
+    # bus. gvfsd's own wrapper sources this script, so it then blocks on
+    # the content-data lock THIS process is holding: on a cold first
+    # login the query waited ~50 s for gvfsd while gvfsd waited its full
+    # 30 s for the lock and failed, and the whole session start
+    # (gnome-shell included) stalled behind it. The query needs nothing
+    # from the VFS, so force the local VFS and no volume monitors and
+    # keep gvfsd out of the lock's way.
     loader_tmp="$loader_cache.$$"
-    if ! "$loader_query" "$loader_module_dir"/*.so > "$loader_tmp"; then
+    if ! GIO_USE_VFS=local GIO_USE_VOLUME_MONITOR=none \
+        "$loader_query" "$loader_module_dir"/*.so > "$loader_tmp"; then
       rm -f "$loader_tmp"
       rmdir "$lock_dir" 2>/dev/null
       echo "Failed to generate content-snap GdkPixbuf loader cache" >&2
