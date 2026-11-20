@@ -40,6 +40,12 @@ environment:
   # falls back to the keyfile backend even once the "gsettings" plug
   # below is connected (see the plug's comment).
   GIO_EXTRA_MODULES: "$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/gio/modules"
+  # The session's GSettings stack runs on the real dconf database, served
+  # by the session's own dconf-service app. Set explicitly rather than
+  # relying on GLib's snap heuristic (snapctl is-connected gsettings):
+  # every session component that touches GSettings - the shell, gsd-*,
+  # the a11y chord script - must share the user's one live store.
+  GSETTINGS_BACKEND: dconf
   XDG_DATA_DIRS: "$SNAP/gnome/usr/share:$SNAP/usr/share:/var/lib/snapd/desktop"
   XDG_CONFIG_DIRS: "$SNAP/gnome/etc/xdg:$SNAP/gnome/usr/etc/xdg:/etc/xdg"
 
@@ -191,6 +197,7 @@ apps:
       - user-dirs-defaults
       - gnome-content-launch
       - systemd-user-control
+      - gsettings
 
   ensure-x11-dir:
     # T53: the boot-time root pass for /tmp/.X11-unix in this snap's
@@ -237,6 +244,7 @@ apps:
       # snap-wide (build.sh gnome simple_plugs) -- only this app-level
       # declaration was missing.
       - systemd-user-control
+      - gsettings
 
   screencast-service:
     command: run.sh /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.Shell.Screencast
@@ -250,6 +258,8 @@ apps:
       - dbus-gnome-shell-screencast
     plugs:
       - pipewire
+      # The screencast gjs module reads the user's GSettings (dconf).
+      - gsettings
 
   nautilus-service:
     command: run.sh /usr/bin/nautilus --gapplication-service
@@ -262,6 +272,10 @@ apps:
       - dot-local-share-nautilus
       - dot-hidden
       - desktop-legacy
+      # nautilus reads the user's GSettings (dconf); the dconf service is
+      # this snap's own daemon, the interface supplies the ca.desrt.dconf
+      # bus/AppArmor consent edge.
+      - gsettings
     activates-on:
       - dbus-gnome-nautilus
 
@@ -283,6 +297,8 @@ apps:
       - dbus-gnome-mutter-screencast-client
       - pipewire
       - desktop-legacy
+      # xdg-desktop-portal-gnome reads the user's GSettings (dconf).
+      - gsettings
 
   ibus-service:
     command: run.sh /usr/bin/ibus-daemon --panel disable
@@ -290,6 +306,9 @@ apps:
     daemon-scope: user
     activates-on:
       - dbus-ibus
+    plugs:
+      # ibus-daemon reads its GSettings (dconf).
+      - gsettings
 
   ibus-gtk3-service:
     command: run.sh /usr/libexec/ibus-extension-gtk3
@@ -299,6 +318,8 @@ apps:
       - dbus-ibus-gtk3
     plugs:
       - desktop-legacy
+      # The GTK3 im module reads the user's GSettings (dconf).
+      - gsettings
 
   ibus-portal-service:
     command: run-ibus-portal.sh
@@ -306,6 +327,8 @@ apps:
     daemon-scope: user
     plugs:
       - wayland-client
+      # The ibus portal reads the user's GSettings (dconf).
+      - gsettings
     activates-on:
       - dbus-ibus-portal
 
@@ -315,6 +338,9 @@ apps:
     daemon-scope: user
     activates-on:
       - dbus-colord
+    plugs:
+      # colord-session reads its GSettings (dconf).
+      - gsettings
 
   dconf-service:
     command: run.sh /usr/libexec/dconf-service
@@ -327,6 +353,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   dirmngr:
     command: run.sh /usr/bin/dirmngr
     plugs:
@@ -336,6 +363,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   gcr-prompter:
     command: run.sh /usr/libexec/gcr-prompter
     slots:
@@ -347,6 +375,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
       - desktop-legacy
   gcr-ssh-agent:
@@ -358,6 +387,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   glib-pacrunner:
     command: run.sh /usr/libexec/glib-pacrunner
     slots:
@@ -369,6 +399,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - network
   gnome-control-center:
     command: run.sh /usr/bin/gnome-control-center
@@ -384,6 +415,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
       - desktop-legacy
   gnome-control-center-global-shortcuts-provider:
@@ -397,6 +429,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - desktop-legacy
   gnome-control-center-search-provider:
     command: run.sh /usr/libexec/gnome-control-center-search-provider
@@ -409,6 +442,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - desktop-legacy
   gnome-extensions-app:
     command: run.sh /usr/bin/gnome-extensions-app
@@ -421,6 +455,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gnome-initial-setup:
     command: run.sh /usr/libexec/gnome-initial-setup
@@ -432,6 +467,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gnome-initial-setup-wrapper:
     command: run.sh /usr/libexec/gnome-initial-setup-wrapper
@@ -443,6 +479,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gnome-keyring-daemon:
     command: run.sh /usr/bin/gnome-keyring-daemon
@@ -457,6 +494,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   gnome-session-ctl:
     command: run.sh /usr/libexec/gnome-session-ctl
     plugs:
@@ -466,6 +504,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   gnome-session-service:
     # T51: the wizard-session init gate. The gate only acts on
     # --session=gnome-initial-setup (the systemd template arg from
@@ -487,6 +526,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - session-environment-broker-client
   session-environment-broker:
     command: usr/libexec/ubuntu-desktop-session/session-environment-broker
@@ -592,6 +632,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   gnome-shell-extensions:
     command: run.sh /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.Shell.Extensions
     slots:
@@ -603,6 +644,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gnome-shell-hotplug-sniffer:
     command: run.sh /usr/libexec/gnome-shell-hotplug-sniffer
@@ -615,6 +657,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   gnome-shell-notifications:
     command: run.sh /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.Shell.Notifications
     slots:
@@ -631,6 +674,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gnome-shell-screensaver:
     command: run.sh /usr/bin/gjs -m /usr/share/gnome-shell/org.gnome.ScreenSaver
@@ -643,6 +687,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   goa-daemon:
     command: run.sh /usr/libexec/goa-daemon
@@ -659,6 +704,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - network
       - network-manager
   goa-identity-service:
@@ -676,6 +722,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - network
   gpg-agent:
     command: run.sh /usr/bin/gpg-agent
@@ -686,6 +733,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   gsd-a11y-settings:
     # T51: the wizard session's actual session-snap entry point for the
     # a11y chain. The base's org.gnome.SettingsDaemon.A11ySettings.service.d
@@ -707,6 +755,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gsd-color:
     command: run.sh /usr/libexec/gsd-color
@@ -717,6 +766,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gsd-datetime:
     command: run.sh /usr/libexec/gsd-datetime
@@ -728,6 +778,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gsd-housekeeping:
     command: run.sh /usr/libexec/gsd-housekeeping
@@ -738,6 +789,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gsd-keyboard:
     command: run.sh /usr/libexec/gsd-keyboard
@@ -748,6 +800,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gsd-media-keys:
     # T51: the chord GRABBER also runs the wizard gate (redundant with
@@ -782,6 +835,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gsd-power:
     command: run.sh /usr/libexec/gsd-power
@@ -792,6 +846,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
       - upower-observe
   gsd-print-notifications:
@@ -803,6 +858,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gsd-rfkill:
     command: run.sh /usr/libexec/gsd-rfkill
@@ -813,6 +869,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
       - network-manager
   gsd-screensaver-proxy:
@@ -824,6 +881,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gsd-sharing:
     command: run.sh /usr/libexec/gsd-sharing
@@ -834,6 +892,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
       - network-manager
   gsd-smartcard:
@@ -845,6 +904,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gsd-sound:
     command: run.sh /usr/libexec/gsd-sound
@@ -855,6 +915,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gsd-usb-protection:
     command: run.sh /usr/libexec/gsd-usb-protection
@@ -865,6 +926,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gsd-wwan:
     command: run.sh /usr/libexec/gsd-wwan
@@ -875,6 +937,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gsd-xsettings:
     command: run.sh /usr/libexec/gsd-xsettings
@@ -885,6 +948,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   gvfs-afc-volume-monitor:
     command: run.sh /usr/libexec/gvfs-afc-volume-monitor
@@ -901,6 +965,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   gvfs-goa-volume-monitor:
     command: run.sh /usr/libexec/gvfs-goa-volume-monitor
     daemon: dbus
@@ -916,6 +981,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   gvfs-gphoto2-volume-monitor:
     command: run.sh /usr/libexec/gvfs-gphoto2-volume-monitor
     daemon: dbus
@@ -931,6 +997,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   gvfs-mtp-volume-monitor:
     command: run.sh /usr/libexec/gvfs-mtp-volume-monitor
     daemon: dbus
@@ -946,6 +1013,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   gvfs-udisks2-volume-monitor:
     command: run.sh /usr/libexec/gvfs-udisks2-volume-monitor
     daemon: dbus
@@ -961,6 +1029,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - udisks2
   gvfsd:
     command: run.sh /usr/libexec/gvfsd
@@ -978,6 +1047,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - home
       - dot-hidden
   gvfsd-metadata:
@@ -995,6 +1065,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - dot-local-share-gvfs-metadata
   keyboxd:
     command: run.sh /usr/lib/gnupg/keyboxd
@@ -1005,6 +1076,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   localsearch-3:
     command: run.sh /usr/libexec/localsearch-3
     slots:
@@ -1017,6 +1089,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - home
       - upower-observe
   localsearch-control-3:
@@ -1031,6 +1104,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   localsearch-writeback-3:
     command: run.sh /usr/libexec/localsearch-writeback-3
     slots:
@@ -1043,6 +1117,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - home
   spice-vdagent:
     command: run.sh /usr/bin/spice-vdagent
@@ -1053,6 +1128,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
   ssh-agent:
     command: run.sh /usr/bin/ssh-agent
@@ -1063,6 +1139,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   tinysparql-xdg-portal-3:
     command: run.sh /usr/libexec/tinysparql-xdg-portal-3
     slots:
@@ -1074,6 +1151,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   user-session-migration:
     command: run.sh /usr/bin/user-session-migration
     plugs:
@@ -1083,6 +1161,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - home
   xdg-desktop-portal:
     command: run.sh /usr/libexec/xdg-desktop-portal
@@ -1102,6 +1181,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - network-manager
       - pipewire
       # The frontend must open chooser-selected paths to register document grants.
@@ -1130,6 +1210,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   xdg-desktop-portal-gtk:
     command: run.sh /usr/libexec/xdg-desktop-portal-gtk
     daemon: dbus
@@ -1147,6 +1228,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
       - dbus-portal-desktop
       - desktop-legacy
@@ -1159,6 +1241,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
   xdg-document-portal:
     command: run.sh /usr/libexec/xdg-document-portal
     daemon: dbus
@@ -1193,6 +1276,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - fuse-device
       - dbus-portal-permission-store
   xdg-user-dirs-gtk-update:
@@ -1205,6 +1289,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - wayland-client
       - home
       - desktop-legacy
@@ -1218,6 +1303,7 @@ apps:
       - timeserver-control
       - timezone-control
       - systemd-user-control
+      - gsettings
       - home
 
 plugs:
