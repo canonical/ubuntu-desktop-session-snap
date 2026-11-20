@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   snap:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
     - uses: actions/checkout@v4
     - uses: snapcore/action-build@v1
@@ -46,7 +46,7 @@ jobs:
   # the other branches keep their single-arch amd64 builds.
   snap-arm64:
     if: github.ref_name == 'desktop/26'
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
     steps:
     - uses: actions/checkout@v4
     - uses: snapcore/action-build@v1
