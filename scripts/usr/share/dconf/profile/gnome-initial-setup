@@ -1,0 +1,11 @@
+# dconf profile for the initial-setup (wizard) session. GDM starts that
+# session with DCONF_PROFILE=gnome-initial-setup, but the stock profile
+# only exists in the system base (core26-desktop); a strictly confined
+# session snap runs against its own base (core26), so without this copy
+# the dconf client opens the null configuration and every GSettings read
+# is empty (the wizard's layout selection then never reaches gnome-shell).
+# Stock Ubuntu's profile also lists
+# file-db:/usr/share/gnome-initial-setup/initial-setup-dconf-defaults;
+# that file is not shipped in this image, so it is deliberately omitted
+# rather than making dconf warn on every session start.
+user-db:user

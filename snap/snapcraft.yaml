@@ -33,6 +33,13 @@ environment:
   GNOME_SHELL_DATADIR: "$SNAP/gnome/usr/share/gnome-shell"
   LIBGWEATHER_LOCATIONS_PATH: "$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libgweather-4/Locations.bin"
   GSETTINGS_SCHEMA_DIR: "$SNAP/gnome/usr/share/glib-2.0/schemas"
+  # libgio looks for GSettings backends in its compiled-in
+  # /usr/lib/<triplet>/gio/modules, which in this snap's base (stock
+  # core26) does not exist; the dconf backend module ships in the
+  # gnome-desktop-runtime content instead. Without it GLib silently
+  # falls back to the keyfile backend even once the "gsettings" plug
+  # below is connected (see the plug's comment).
+  GIO_EXTRA_MODULES: "$SNAP/gnome/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/gio/modules"
   XDG_DATA_DIRS: "$SNAP/gnome/usr/share:$SNAP/usr/share:/var/lib/snapd/desktop"
   XDG_CONFIG_DIRS: "$SNAP/gnome/etc/xdg:$SNAP/gnome/usr/etc/xdg:/etc/xdg"
 
@@ -567,6 +574,10 @@ apps:
       - dbus-portal-desktop
       - dbus-portal-permission-store
       - pipewire
+      # dconf client access (ca.desrt.dconf) plus the literal plug name
+      # GLib's sandbox probe looks for to select the dconf GSettings
+      # backend - see the plug and GIO_EXTRA_MODULES comments above.
+      - gsettings
     environment:
       PIPEWIRE_RUNTIME_DIR: /run/user/$SNAP_UID/snap.gnome-desktop-runtime
       XDG_DATA_DIRS: "$SNAP/gnome/usr/share:$SNAP/usr/share:/usr/local/share:/usr/share:/var/lib/snapd/desktop"
@@ -1283,6 +1294,23 @@ plugs:
     interface: dbus
     bus: session
     name: org.a11y.Bus
+  # The name MUST stay "gsettings": GLib decides between the real dconf
+  # GSettings backend and the per-snap keyfile one by running
+  # `snapctl is-connected gsettings` (gportalsupport.c,
+  # glib_has_dconf_access_in_sandbox()), and no :gsettings slot exists
+  # on Ubuntu Core. Without a connected plug with that literal name the
+  # keyfile backend gets priority 110 and every confined session app
+  # silently reads/writes its own keyfile store instead of the user's
+  # dconf database - e.g. the wizard writes org.gnome.desktop.input-
+  # sources sources to dconf but the confined gnome-shell never sees it
+  # and falls back to the built-in "us" layout. The interface is the
+  # session's own dbus-dconf slot (ca.desrt.dconf), connected
+  # gadget-side in build.sh; dconf file access itself already comes
+  # from systemd-user-control.
+  gsettings:
+    interface: dbus
+    bus: session
+    name: ca.desrt.dconf
   pictures-directory:
     interface: personal-files
     write:
