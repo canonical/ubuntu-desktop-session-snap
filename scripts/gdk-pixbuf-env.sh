@@ -164,10 +164,13 @@ if ! content_assets_ready; then
     # login the query waited ~50 s for gvfsd while gvfsd waited its full
     # 30 s for the lock and failed, and the whole session start
     # (gnome-shell included) stalled behind it. The query needs nothing
-    # from the VFS, so force the local VFS and no volume monitors and
-    # keep gvfsd out of the lock's way.
+    # from the VFS, so force the local VFS and keep gvfsd out of the
+    # lock's way. (GIO_USE_VFS is the effective lever; do not add
+    # GIO_USE_VOLUME_MONITOR=none - no GIO module references it and
+    # libgio only uses it to choose the native monitor, so "none" is not
+    # a valid value and does not disable the remote monitors.)
     loader_tmp="$loader_cache.$$"
-    if ! GIO_USE_VFS=local GIO_USE_VOLUME_MONITOR=none \
+    if ! GIO_USE_VFS=local \
         "$loader_query" "$loader_module_dir"/*.so > "$loader_tmp"; then
       rm -f "$loader_tmp"
       rmdir "$lock_dir" 2>/dev/null
