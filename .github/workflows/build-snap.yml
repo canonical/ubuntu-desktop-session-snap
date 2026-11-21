@@ -15,7 +15,7 @@ jobs:
   snap:
     runs-on: ubuntu-26.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: snapcore/action-build@v1
       id: snapcraft
       with:
@@ -33,7 +33,7 @@ jobs:
                --title "desktop/26 latest snap" \
                --notes "Rolling latest desktop/26 snap build; assets are replaced on every green build."
         gh release upload desktop-26-latest ubuntu-desktop-session.snap -R "$GITHUB_REPOSITORY" --clobber
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: 'snap'
         path: ${{ steps.snapcraft.outputs.snap}}
@@ -48,7 +48,7 @@ jobs:
     if: github.ref_name == 'desktop/26'
     runs-on: ubuntu-26.04-arm
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: snapcore/action-build@v1
       id: snapcraft
       with:
@@ -65,7 +65,7 @@ jobs:
                --title "desktop/26 latest snap" \
                --notes "Rolling latest desktop/26 snap build; assets are replaced on every green build."
         gh release upload desktop-26-latest ubuntu-desktop-session-arm64.snap -R "$GITHUB_REPOSITORY" --clobber
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v6
       with:
         name: 'snap-arm64'
         path: ${{ steps.snapcraft.outputs.snap}}
